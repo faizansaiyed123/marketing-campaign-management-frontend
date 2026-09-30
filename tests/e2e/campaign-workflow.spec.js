@@ -150,7 +150,7 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
   await expect(page.getByRole("heading", { name: "Edit campaign" })).toBeVisible();
 
   await page.getByLabel("Subject").fill("Updated scheduled subject");
-  await page.locator("form.editor").getByLabel("Schedule").fill("");
+  await page.locator("form.editor:visible input[type=\"datetime-local\"]").fill("");
   await page.getByRole("button", { name: "Save campaign" }).click();
   await expect(page.locator(".campaign-row").filter({ hasText: "Scheduled Campaign" })).toContainText("draft");
 
