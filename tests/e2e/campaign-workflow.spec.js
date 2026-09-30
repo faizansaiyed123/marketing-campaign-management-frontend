@@ -125,7 +125,7 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
 
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const p = (value) => String(value).padStart(2, "0");
-  await page.getByLabel("Schedule").fill(
+  await page.locator("form.editor").getByLabel("Schedule").fill(
     tomorrow.getFullYear() + "-" + p(tomorrow.getMonth() + 1) + "-" +
     p(tomorrow.getDate()) + "T" + p(tomorrow.getHours()) + ":" + p(tomorrow.getMinutes())
   );
@@ -137,7 +137,7 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
   await expect(page.getByRole("heading", { name: "Edit campaign" })).toBeVisible();
 
   await page.getByLabel("Subject").fill("Updated scheduled subject");
-  await page.getByLabel("Schedule").fill("");
+  await page.locator("form.editor").getByLabel("Schedule").fill("");
   await page.getByRole("button", { name: "Save campaign" }).click();
   await expect(page.locator(".campaign-row").filter({ hasText: "Scheduled Campaign" })).toContainText("draft");
 
