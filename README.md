@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-The frontend uses `VITE_API_URL` for the FastAPI base URL and relies on the backend's HttpOnly session cookie.
+The frontend uses `VITE_API_URL` for the FastAPI base URL and relies on the backend's HttpOnly session cookie. Dependency versions are pinned by the committed `package-lock.json`.
 
 ## Implemented
 - Registration and login states backed by the real API.
