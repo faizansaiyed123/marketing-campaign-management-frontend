@@ -79,7 +79,7 @@ test("session survives reload, duplicate-contact errors are surfaced, and logout
   await page.reload();
   await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
 
-  await page.getByRole("button", { name: "Audience" }).click();
+  await page.locator(".sidebar nav").first().getByRole("button", { name: /Audience/ }).click();
   const audienceName = "Duplicate Test " + Date.now();
   await page.getByPlaceholder("New audience name").fill(audienceName);
   await page.getByRole("button", { name: "Add", exact: true }).click();
@@ -107,7 +107,7 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
   await page.getByLabel("Password").fill("strong-password-123");
   await page.getByRole("button", { name: "Create workspace" }).click();
 
-  await page.getByRole("button", { name: "Audience" }).click();
+  await page.locator(".sidebar nav").first().getByRole("button", { name: /Audience/ }).click();
   const audienceName = "Schedule Audience " + Date.now();
   await page.getByPlaceholder("New audience name").fill(audienceName);
   await page.getByRole("button", { name: "Add", exact: true }).click();
