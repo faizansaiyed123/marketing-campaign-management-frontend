@@ -17,7 +17,7 @@ test("user can complete the audience-to-campaign frontend workflow against the A
   await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
 
   await page.locator(".sidebar nav").first().getByRole("button", { name: /Audience/ }).click();
-  await expect(page.getByRole("heading", { name: "Audience" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Audience", exact: true })).toBeVisible();
 
   const audienceName = "E2E Audience " + Date.now();
   await page.getByPlaceholder("New audience name").fill(audienceName);
