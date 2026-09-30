@@ -35,6 +35,19 @@ test("user can complete the audience-to-campaign frontend workflow against the A
   await page.getByRole("button", { name: "Subscribe" }).click();
   await expect(page.getByRole("button", { name: "Unsubscribe" })).toBeVisible();
 
+  const audienceState = await page.evaluate(async () => {
+    const response = await fetch("http://127.0.0.1:8000/api/v1/audiences", { credentials: "include" });
+    return response.json();
+  });
+  expect(audienceState).toHaveLength(1);
+  expect(audienceState[0].contact_count).toBe(1);
+  const contactState = await page.evaluate(async (audienceId) => {
+    const response = await fetch("http://127.0.0.1:8000/api/v1/audiences/" + audienceId + "/contacts", { credentials: "include" });
+    return response.json();
+  }, audienceState[0].id);
+  expect(contactState).toHaveLength(1);
+  expect(contactState[0].unsubscribed_at).toBeNull();
+
   await page.getByRole("button", { name: "Campaigns" }).click();
   await expect(page.getByRole("heading", { name: "Campaigns" })).toBeVisible();
   await page.getByRole("button", { name: "New campaign" }).click();
@@ -125,7 +138,7 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
 
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const p = (value) => String(value).padStart(2, "0");
-  await page.locator("form.editor").getByLabel("Schedule").fill(
+  await page.locator('input[type="datetime-local"]:visible').last().fill(
     tomorrow.getFullYear() + "-" + p(tomorrow.getMonth() + 1) + "-" +
     p(tomorrow.getDate()) + "T" + p(tomorrow.getHours()) + ":" + p(tomorrow.getMinutes())
   );
