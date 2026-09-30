@@ -52,8 +52,8 @@ test("user can complete the audience-to-campaign frontend workflow against the A
   await expect(page.locator(".report-card")).toContainText("Queued");
 
   await page.getByRole("button", { name: "Analytics" }).click();
-  await expect(page.locator(".stat").filter({ hasText: "Deliveries" }).locator("strong")).toHaveText("1");
-  await expect(page.locator(".stat").filter({ hasText: "Sent" }).locator("strong")).toHaveText("0");
+  await expect(page.locator(".analytics-grid .stat").nth(0).locator("strong")).toHaveText("1");
+  await expect(page.locator(".analytics-grid .stat").nth(1).locator("strong")).toHaveText("0");
 });
 
 test("authentication errors are surfaced in the browser", async ({ page }) => {
