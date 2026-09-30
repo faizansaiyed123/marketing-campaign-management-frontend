@@ -21,7 +21,10 @@ jobs:
       - name: Commit generated lockfile on development
         if: github.ref == 'refs/heads/development'
         run: |
-          if git diff --quiet -- package-lock.json; then
+          if [ ! -f package-lock.json ]; then
+            npm install --package-lock-only
+          fi
+          if ! git status --porcelain -- package-lock.json | grep -q .; then
             exit 0
           fi
           git config user.name "github-actions[bot]"
