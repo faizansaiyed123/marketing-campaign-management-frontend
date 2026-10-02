@@ -58,10 +58,15 @@ docker compose up --build
 
 ## Manual development
 
+Create the local environment file from the checked-in example, then install and start Vite:
+
 ```bash
+cp .env.example .env
 npm install
 npm run dev
 ```
+
+Set `VITE_API_URL` in `.env` to the backend's URL. The frontend does not embed a backend URL in application source.
 
 The frontend uses `VITE_API_URL` for the FastAPI base URL and relies on the backend's HttpOnly session cookie. Dependency versions are pinned by the committed `package-lock.json`.
 
