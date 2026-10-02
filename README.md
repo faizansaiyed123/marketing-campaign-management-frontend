@@ -56,29 +56,6 @@ docker compose down
 docker compose up --build
 ```
 
-## One-command local startup
-
-From the frontend repository, `python run.py` starts the existing backend Docker Compose stack, waits for the backend `/health` endpoint, and then starts the existing Vite development command.
-
-```bash
-python run.py
-```
-
-The script looks for the backend repository in a nearby directory named `marketing-campaign-management-backend`. Set `BACKEND_DIR` when it lives elsewhere:
-
-```bash
-BACKEND_DIR=/path/to/marketing-campaign-management-backend python run.py
-```
-
-On Windows PowerShell:
-
-```powershell
-$env:BACKEND_DIR="C:\\path\\to\\marketing-campaign-management-backend"
-python run.py
-```
-
-The script does not start a second copy when the backend health endpoint or frontend port is already serving.
-
 ## Manual development
 
 ```bash
