@@ -69,6 +69,30 @@ test("user can complete the audience-to-campaign frontend workflow against the A
   await expect(page.locator(".analytics-grid .stat").nth(1).locator("strong")).toHaveText("0");
 });
 
+test("mobile workspace navigation remains visible and accessible", async ({ page }) => {
+  const email = uniqueEmail("mobile-nav");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByLabel("Name").fill("Mobile Navigation User");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("strong-password-123");
+  await page.getByRole("button", { name: "Create workspace" }).click();
+
+  await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
+
+  const nav = page.locator(".sidebar nav").first();
+  for (const name of ["Overview", "Campaigns", "Audience", "Analytics"]) {
+    const button = nav.getByRole("button", { name, exact: true });
+    await expect(button).toBeVisible();
+    await expect(button.locator(".nav-icon")).toBeVisible();
+  }
+
+  await nav.getByRole("button", { name: "Audience", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Audience", exact: true })).toBeVisible();
+});
+
 test("authentication errors are surfaced in the browser", async ({ page }) => {
   await page.goto("/");
   await page.getByLabel("Email").fill("does-not-exist@example.com");
