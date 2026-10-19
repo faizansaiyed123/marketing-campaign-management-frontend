@@ -70,6 +70,18 @@ Set `VITE_API_URL` in `.env` to the backend's URL. The frontend does not embed a
 
 The frontend uses `VITE_API_URL` for the FastAPI base URL and relies on the backend's HttpOnly session cookie. Dependency versions are pinned by the committed `package-lock.json`.
 
+## Production deployment
+
+Set `VITE_API_URL` to the public HTTPS origin of the deployed backend **at build time**. With Docker, for example:
+
+```bash
+VITE_API_URL=https://api.example.com docker compose up --build
+```
+
+Because Vite embeds this variable into the generated assets, rebuild the image whenever the API URL changes. The checked-in localhost URL is for local development only. Do not put JWT secrets, SMTP credentials, or other private backend settings in any `VITE_*` variable; frontend build variables are public.
+
+For cookie-based login to work, configure the backend's `FRONTEND_ORIGIN` to the exact HTTPS frontend origin and use `COOKIE_SECURE=true`, `COOKIE_NAME=__Host-campaign_session`, and a unique random `JWT_SECRET_KEY` in production. The backend's session cookie defaults to `SameSite=Strict`, so deploy the frontend and API on custom HTTPS domains under the same registrable domain (for example, `app.example.com` and `api.example.com`). Unrelated default provider domains may cause browsers to block the session cookie. See the backend repository README for the corresponding database, migration, and SMTP settings.
+
 ## Implemented
 
 - Registration and login states backed by the real API.
