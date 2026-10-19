@@ -1,46 +1,49 @@
 # Project Progress — Marketing Campaign Management Frontend
 
 ## Objective and acceptance criteria
-Prepare the existing frontend to work reliably with the separate backend and for production deployment. Preserve existing functionality, verify code/configuration, record actual test results, and document blockers and the exact next action.
+Prepare the existing frontend to work reliably with the separate backend and for production deployment. Preserve existing functionality, verify source/configuration, record actual test results, and document external blockers.
 
 ## Repository baseline and current state
 - Repository: https://github.com/faizansaiyed123/marketing-campaign-management-frontend
-- Target/default branch: `main`; branch protection was reported disabled.
-- Baseline inspected SHA: `8e2f4ca51609064893ae226748b5667a97ac8599`.
-- Latest application-code commit made during this audit: `f17497468bcc3c577f414d44a3993615051e2417` — mobile navigation visibility/accessibility fix.
+- Target/default branch: `main`; branch metadata reports protection disabled.
+- Initial baseline SHA inspected: `8e2f4ca51609064893ae226748b5667a97ac8599`.
+- Latest application-code commit: `f17497468bcc3c577f414d44a3993615051e2417` — mobile navigation accessibility/visibility fix.
 - Latest CI configuration commit: `63ddd355c12911212fd86a91d616712f873bb580`.
+- Latest deployment documentation commit before this progress refresh: `57ead18ae97272cbdb3874e5dc1b5eb60e513f2b`.
 - GitHub connection reports admin/maintain/push permissions.
-- A local clone attempt failed because the execution environment could not resolve github.com. Repository changes were made through the connected GitHub integration; no local project changes are pending.
+- A local clone attempt failed because the execution environment could not resolve github.com. Repository edits were committed through the GitHub integration; there are no local uncommitted project changes.
 
 ## Branch and source audit
 Branches discovered: `main`, `development`, `chore/startup-docker-support`.
-- Recursive tree/blob comparison showed the non-main branches are behind `main` with zero commits ahead.
-- `development` has no branch-only files. Main has Docker support files absent from that older tree and subsequent app/documentation changes.
-- `chore/startup-docker-support` contains a branch-only `run.py` that attempts to locate/start the separate backend from the frontend repository. Main's removal of that cross-repository runner is intentional; it is not included in production.
-- Frontend API route families were mapped against backend routers for auth, audiences, campaigns, dashboard, and analytics; major paths align.
-- No branch was merged wholesale.
+- Recursive file-tree and blob-SHA comparison found both non-main branches behind main with zero commits ahead.
+- `development` has no branch-only files; main contains newer Docker files, app code, and documentation.
+- `chore/startup-docker-support` contains a branch-only `run.py` that tries to locate/start the separate backend from the frontend repository. The later main-branch removal of that coupled runner is intentional; it remains excluded.
+- Frontend API path references were mapped to backend routers for authentication, audiences/contacts, campaigns, dashboard, and analytics. The major route families and methods align.
+- No branches were merged wholesale.
 
-## Changes made
-- `.github/workflows/ci.yml`: reduced workflow permission to `contents: read`, removed auto-commit/push of a generated lockfile on `development`, and changed dependency installation to `npm ci` in build and integration jobs.
-- `src/main.jsx` and `src/style.css`: split navigation icons from labels, retained accessible labels, and kept icons visible at mobile widths instead of applying zero font size to the entire button.
-- `tests/e2e/campaign-workflow.spec.js`: added a mobile workspace navigation regression test.
-- `README.md`: documented production API URL/build behavior and the same-site cookie deployment requirement.
-- This file records progress and deployment prerequisites.
+## Changes committed
+- `.github/workflows/ci.yml`: reduced permission from `contents: write` to `contents: read`; removed automatic lockfile commit/push on development; uses `npm ci` in build and integration jobs.
+- `src/main.jsx`, `src/style.css`: rendered sidebar icons as separate elements with accessible labels; mobile widths no longer hide the icons along with their labels.
+- `tests/e2e/campaign-workflow.spec.js`: added a mobile navigation regression test that checks visible icons/button accessibility and navigation at 390px viewport width.
+- `README.md`: documented public HTTPS `VITE_API_URL` build-time configuration and SameSite=Strict cookie domain requirements.
+- `PROJECT_PROGRESS.md`: retained this audit and deployment checkpoint.
 
-## Tests and CI
-- Historical baseline CI passed on 2026-10-02 at SHA `8e2f4ca51609`: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/36958335105
-- On the audit CI commit `63ddd355c129`, the `build` job completed successfully, including `npm ci` and `npm run build`. The integration job had not completed at the latest status check: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39286677859
-- CI triggered for the mobile-navigation commit `f17497468bcc` was queued at the latest check: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39287160573
-- No local lint/type-check/build/E2E run was possible because github.com could not be resolved from the local execution environment. Do not mark mobile E2E as passed until the linked workflow completes.
+## CI and test verification
+- Historical baseline at SHA `8e2f4ca51609` passed CI: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/36958335105
+- CI hardening commit `63ddd355c129` passed its updated CI run: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39286677859
+- Mobile-navigation commit `f17497468bcc` passed both jobs: frontend production build and Playwright integration tests, including backend migrations/setup and the browser workflow: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39287160573
+- For docs commit `57ead18ae972`, the build and integration jobs both reported `completed / success` at the last jobs API check. The overall run had not yet published its final conclusion: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39287610762
+- The local environment did not have a usable GitHub clone, so no local test run is claimed.
 
 ## Deployment status and prerequisites
-- No live deployment or production URL has been created or verified.
-- Set `VITE_API_URL` to the public HTTPS backend origin at build time.
-- Set backend `FRONTEND_ORIGIN` to the exact frontend origin; for current SameSite=Strict cookies, use frontend/API custom domains under the same registrable domain.
-- Backend HTTPS, PostgreSQL, secure runtime configuration, migrations, and optional SMTP setup are required as applicable.
-- No secrets are stored in this file.
+- No live deployment has been attempted; no production URL is claimed.
+- Set `VITE_API_URL` to the public HTTPS backend origin at build time; rebuild the frontend image after changing this variable.
+- Configure backend `FRONTEND_ORIGIN` to the exact HTTPS frontend origin.
+- Since the backend session cookie uses `SameSite=Strict`, deploy frontend and API using HTTPS custom domains under the same registrable domain (for example, `app.example.com` and `api.example.com`). Unrelated default hostnames may block cookie-based sessions.
+- A deployed backend, PostgreSQL/migrations, secure server-side environment configuration, and optional SMTP configuration remain external prerequisites.
+- No secrets are stored here.
 
 ## Next action
-1. Verify the CI run for `f17497468bcc` and the backend production-hardening run.
-2. Fix any CI regressions and record actual results.
-3. If CI passes, perform a final remote-state/commit check and document any deployment infrastructure that remains external.
+1. Verify the final CI conclusion for the latest `main` commit.
+2. Verify the backend hardening commit that rejects default database credentials.
+3. Inspect the final remote heads and record exact SHAs/remaining deployment prerequisites.
