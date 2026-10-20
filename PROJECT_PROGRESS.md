@@ -1,9 +1,9 @@
 # Project Progress — Marketing Campaign Management Frontend
 
 ## Status — October 20, 2026
-The current frontend source, deployment config, and browser integration are committed on main and passed CI.
+The current frontend source, deployment config, and browser integration are committed on main and passed CI at revision `dea83b345c9c6de2fcb3d5e68bdaa9ce1a999f2e`.
 - Campaign execution treats HTTP 202 as durable queue acceptance; it does not imply SMTP has sent mail.
-- Campaign reports refresh status while the worker processes queued runs and distinguish Attempts, Sent, Failed, Skipped, Opened, and Clicked. Attempt totals include delivery rows across retries, not unique contacts.
+- Campaign reports refresh status while the worker processes queued runs and distinguish Attempts, Sent, Failed, Skipped, Opened, and Clicked. Automatic polling is bounded; a visible Refresh report action restarts polling/checks current status for long-running or stalled queues. Attempt totals include delivery rows across retries, not unique contacts.
 - A recipient who unsubscribes after a campaign is queued but before the worker sends it is skipped by the backend and shown separately in reports.
 - The editor documents {{first_name}}, {{last_name}}, {{full_name}}, and {{email}} merge fields.
 - Empty-audience campaigns can be reused after contacts are added; failed/partial campaigns can be edited before retry without accidentally resetting retry semantics.
@@ -14,8 +14,8 @@ The current frontend source, deployment config, and browser integration are comm
 ## Repositories and CI
 - Frontend: https://github.com/faizansaiyed123/marketing-campaign-management-frontend
 - Backend: https://github.com/faizansaiyed123/marketing-campaign-management-backend
-- Frontend code/config revision verified by CI before this documentation update: `e115e4185bbc9c07bc344c83ce5e3822d4254a2e`
-- Passing frontend build + integration CI: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39389317792
+- Frontend code/config revision verified by CI before this documentation update: `dea83b345c9c6de2fcb3d5e68bdaa9ce1a999f2e`
+- Passing frontend build + integration CI: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39398860387
 - Backend latest verified application revision before the edit/retry correction: c9cf66a409bfb7faa07b7832585b73f5f0b78f11
 - The frontend CI checks npm ci, high/critical npm advisories, Vercel config and invalid API URL rejection, HTTPS production builds, Docker container smoke/security headers, and Playwright integration against backend main.
 
@@ -24,7 +24,7 @@ The current frontend source, deployment config, and browser integration are comm
 - The API client normalizes trailing slashes in VITE_API_URL and sends credentialed requests for the backend HttpOnly cookie.
 - Report polling is bounded and stops after the worker completes the run, or after a bounded wait when mail delivery is not configured.
 - Campaign report Attempts are cumulative across retries, while latest_run_status identifies the current latest run. Skipped deliveries are not labelled sent or failed.
-- Playwright tests cover audience/contact flows, template ownership, session persistence, scheduled campaigns, report refresh, skipped delivery presentation, and retry/empty-audience recovery.
+- Playwright tests cover audience/contact flows, template ownership, session persistence, scheduled campaigns, automatic and manual report refresh, skipped-delivery presentation, and retry/empty-audience recovery.
 
 ## Deploy choices
 1. Existing Vercel project: use this repository root and main as the production branch. The checked-in vercel.json uses the Vite framework/build/output settings plus SPA rewrites. Set Production VITE_API_URL to the real public HTTPS API origin. The production build rejects missing, plain-HTTP, localhost, and example placeholder origins.
