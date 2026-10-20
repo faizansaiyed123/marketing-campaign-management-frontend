@@ -63,7 +63,7 @@ test("user can complete the audience-to-campaign frontend workflow against the A
   await page.getByRole("button", { name: "Execute" }).click();
 
   await expect(page.locator(".report-card")).toContainText("Latest run: queued");
-  await expect(page.locator(".report-card")).toContainText("Recipients");
+  await expect(page.locator(".report-card")).toContainText("Attempts");
   await expect(page.locator(".report-card")).toContainText("Queued");
 
   await page.getByRole("button", { name: "Analytics" }).click();
@@ -223,7 +223,7 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
   await page.locator(".campaign-row").filter({ hasText: "Scheduled Campaign" })
     .getByRole("button", { name: "Execute" }).click();
   await expect(page.locator(".report-card")).toContainText("Latest run: queued");
-  await expect(page.locator(".report-card")).toContainText("Recipients");
+  await expect(page.locator(".report-card")).toContainText("Attempts");
 });
 
 
@@ -358,7 +358,7 @@ test("an empty completed campaign can be reused after contacts are added", async
   await expect(row).toBeVisible();
   await row.getByRole("button", { name: "Execute" }).click();
   await expect(page.locator(".report-card")).toContainText("Latest run: completed");
-  await expect(page.locator(".report-card")).toContainText("Recipients");
+  await expect(page.locator(".report-card")).toContainText("Attempts");
   await expect(page.locator(".report-card")).toContainText("0");
 
   await nav.getByRole("button", { name: "Audience", exact: true }).click();
