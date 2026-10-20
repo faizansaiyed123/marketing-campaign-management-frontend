@@ -51,6 +51,8 @@ test("user can complete the audience-to-campaign frontend workflow against the A
   await page.getByRole("button", { name: "Campaigns" }).click();
   await expect(page.getByRole("heading", { name: "Campaigns" })).toBeVisible();
   await page.getByRole("button", { name: "New campaign" }).click();
+  await expect(page.locator("form.editor")).toContainText("{{first_name}}");
+  await expect(page.locator("form.editor")).toContainText("{{full_name}}");
 
   await page.getByLabel("Campaign name").fill("E2E Campaign");
   await page.getByLabel("Subject").fill("Integration test");
