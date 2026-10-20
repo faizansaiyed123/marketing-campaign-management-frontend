@@ -374,4 +374,5 @@ test("an empty completed campaign can be reused after contacts are added", async
   await reusableRow.getByRole("button", { name: "Execute" }).click();
   await expect(page.locator(".report-card")).toContainText("Latest run: queued");
   await expect(page.locator(".report-card")).toContainText("Queued");
+  await expect(page.locator(".report-card")).toContainText("Totals include delivery attempts across runs, including retries");
 });

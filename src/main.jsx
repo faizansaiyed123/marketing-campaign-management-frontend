@@ -177,6 +177,7 @@ function Campaigns({setError}) {
       <div>
         <b>{report.campaign.name} report</b>
         <p aria-live="polite">Latest run: {report.latest_run_status || "none"}{refreshingReport ? " · Refreshing delivery status…" : ""}</p>
+        <p className="muted-copy">Totals include delivery attempts across runs, including retries.</p>
         {report.latest_run_status === "queued" && <p className="muted-copy">Deliveries are queued for the background worker. The report refreshes automatically while processing is active.</p>}
       </div>
       <div className="mini-stats">{Object.entries({Recipients:report.summary.total,Queued:report.summary.queued,Sent:report.summary.sent,Failed:report.summary.failed,Skipped:report.summary.skipped,Opened:report.summary.opened,Clicked:report.summary.clicked}).map(([k,v])=><div key={k}><strong>{v}</strong><small>{k}</small></div>)}</div>
