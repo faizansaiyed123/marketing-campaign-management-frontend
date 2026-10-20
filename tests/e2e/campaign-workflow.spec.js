@@ -223,3 +223,51 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
   await expect(page.locator(".report-card")).toContainText("Latest run: queued");
   await expect(page.locator(".report-card")).toContainText("Recipients");
 });
+
+
+test("campaign delivery report refreshes when background processing completes", async ({ page }) => {
+  const email = uniqueEmail("worker-report");
+  await page.goto("/");
+  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByLabel("Name").fill("Worker Report User");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("strong-password-123");
+  await page.getByRole("button", { name: "Create workspace" }).click();
+  await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
+
+  await page.locator(".sidebar nav").first().getByRole("button", { name: "Audience", exact: true }).click();
+  const audienceName = "Worker Report Audience " + Date.now();
+  await page.getByPlaceholder("New audience name").fill(audienceName);
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("button", { name: new RegExp(audienceName) })).toBeVisible();
+  await page.getByPlaceholder("Email").fill("worker-report@example.com");
+  await page.getByRole("button", { name: "Add contact" }).click();
+  await expect(page.getByText("worker-report@example.com")).toBeVisible();
+
+  await page.getByRole("button", { name: "Campaigns", exact: true }).click();
+  await page.getByRole("button", { name: "New campaign" }).click();
+  await page.getByLabel("Campaign name").fill("Worker Report Campaign");
+  await page.getByLabel("Subject").fill("Background delivery status");
+  await page.getByLabel("Message HTML").fill("<p>Queued for the worker</p>");
+  await page.getByRole("button", { name: "Save campaign" }).click();
+  const campaignRow = page.locator(".campaign-row").filter({ hasText: "Worker Report Campaign" });
+  await expect(campaignRow).toBeVisible();
+
+  // Mimic a worker completing the durable queue between the initial 202 response
+  // and a subsequent GET report request. The integration backend intentionally
+  // runs without an external SMTP account.
+  await page.route("**/api/v1/campaigns/*/report", async route => {
+    const response = await route.fetch();
+    const report = await response.json();
+    report.latest_run_status = "sent";
+    report.campaign.status = "sent";
+    report.summary.queued = 0;
+    report.summary.sent = report.summary.total;
+    await route.fulfill({ response, json: report });
+  });
+
+  await campaignRow.getByRole("button", { name: "Execute" }).click();
+  await expect(page.locator(".report-card")).toContainText("Latest run: queued");
+  await expect(page.locator(".report-card")).toContainText("Latest run: sent", { timeout: 10000 });
+  await expect(page.locator(".report-card")).toContainText("Sent");
+});
