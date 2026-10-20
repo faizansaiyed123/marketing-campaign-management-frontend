@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies from lockfile
         run: npm ci
       - name: Validate Vercel SPA configuration
-        run: node -e 'const c = require("./vercel.json"); if (c.framework !== "vite" || c.buildCommand !== "npm run build:vercel" || c.outputDirectory !== "dist" || !c.rewrites?.some(r => r.source === "/(.*)" && r.destination === "/index.html")) process.exit(1)'
+        run: node -e 'const c = require("./vercel.json"); if (c.framework !== "vite" || c.installCommand !== "npm ci" || c.buildCommand !== "npm run build:vercel" || c.outputDirectory !== "dist" || !c.rewrites?.some(r => r.source === "/(.*)" && r.destination === "/index.html")) process.exit(1)'
       - name: Ensure Vercel build refuses missing or unsafe API URL
         run: |
           if npm run build:vercel >/dev/null 2>&1; then
