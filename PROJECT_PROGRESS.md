@@ -1,7 +1,7 @@
 # Project Progress — Marketing Campaign Management Frontend
 
 ## Status — October 20, 2026
-The current frontend source, deployment config, and browser integration are committed on main and passed CI at revision `eb42f4ae69086ca876dff2142be3cf3042521b36`.
+The current frontend source, deployment config, and browser integration are committed on main and passed CI at revision `b9148ad6430d0e443d78f1f336a60fc38beaeed7`.
 - Campaign execution treats HTTP 202 as durable queue acceptance; it does not imply SMTP has sent mail.
 - Campaign reports refresh status while the worker processes queued runs and distinguish Attempts, Sent, Failed, Skipped, Opened, and Clicked. Automatic polling is bounded; a visible Refresh report action restarts polling/checks current status for long-running or stalled queues. Attempt totals include delivery rows across retries, not unique contacts.
 - Editing a failed/partial campaign explicitly warns that Retry sends only failed recipients; content edits apply to the retry, and previously sent recipients are not resent.
@@ -13,11 +13,12 @@ The current frontend source, deployment config, and browser integration are comm
 - No Vercel CLI or app/hosting integration was installed.
 
 ## Repositories and CI
+- Current `main` commit: `b9148ad6430d0e443d78f1f336a60fc38beaeed7`
 - Frontend: https://github.com/faizansaiyed123/marketing-campaign-management-frontend
 - Backend: https://github.com/faizansaiyed123/marketing-campaign-management-backend
-- Frontend code/config revision verified by CI before this documentation update: `eb42f4ae69086ca876dff2142be3cf3042521b36`
-- Passing frontend build + integration CI: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39400503278
-- Backend latest verified application revision before the edit/retry correction: c9cf66a409bfb7faa07b7832585b73f5f0b78f11
+- Frontend code/config revision verified by CI before this documentation update: `b9148ad6430d0e443d78f1f336a60fc38beaeed7`
+- Passing frontend build + integration CI: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39400798946
+- Backend latest verified application revision: `9db02d023a2880f3366515aa1249a201cec1869c` (passing CI: https://github.com/faizansaiyed123/marketing-campaign-management-backend/actions/runs/39401632017)
 - The frontend CI checks npm ci, high/critical npm advisories, Vercel config and invalid API URL rejection, HTTPS production builds, Docker container smoke/security headers, and Playwright integration against backend main.
 
 ## Application workflows
