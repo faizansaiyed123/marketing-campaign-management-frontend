@@ -17,6 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Print official Vite 6.4.4 package metadata
+      - name: Compare official Vite 6.4.3 and 6.4.4 metadata
         run: |
-          npm view vite@6.4.4 dist.integrity dist.tarball engines --json
+          echo "=== Vite 6.4.3 ==="
+          npm view vite@6.4.3 version dist.integrity dist.tarball dependencies optionalDependencies engines --json
+          echo "=== Vite 6.4.4 ==="
+          npm view vite@6.4.4 version dist.integrity dist.tarball dependencies optionalDependencies engines --json
