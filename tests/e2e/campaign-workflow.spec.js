@@ -273,3 +273,53 @@ test("campaign delivery report refreshes when background processing completes", 
   await expect(page.locator(".report-card")).toContainText("Latest run: sent", { timeout: 10000 });
   await expect(page.locator(".report-card")).toContainText("Sent");
 });
+
+
+test("an empty completed campaign can be reused after contacts are added", async ({ page }) => {
+  const email = uniqueEmail("empty-campaign");
+  await page.goto("/");
+  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByLabel("Name").fill("Empty Campaign User");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("strong-password-123");
+  await page.getByRole("button", { name: "Create workspace" }).click();
+  await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
+
+  const nav = page.locator(".sidebar nav").first();
+  await nav.getByRole("button", { name: "Audience", exact: true }).click();
+  const audienceName = "Initially Empty Audience " + Date.now();
+  await page.getByPlaceholder("New audience name").fill(audienceName);
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("button", { name: new RegExp(audienceName) })).toBeVisible();
+
+  await nav.getByRole("button", { name: "Campaigns", exact: true }).click();
+  await page.getByRole("button", { name: "New campaign" }).click();
+  await page.getByLabel("Campaign name").fill("Recover Empty Campaign");
+  await page.getByLabel("Subject").fill("First attempt had no recipients");
+  await page.getByLabel("Message HTML").fill("<p>Hello {{first_name}}</p>");
+  const audienceSelect = page.locator("form.editor").getByLabel("Audience");
+  const audienceOption = audienceSelect.locator("option").filter({ hasText: audienceName });
+  await audienceSelect.selectOption(await audienceOption.getAttribute("value"));
+  await page.getByRole("button", { name: "Save campaign" }).click();
+
+  const row = page.locator(".campaign-row").filter({ hasText: "Recover Empty Campaign" });
+  await expect(row).toBeVisible();
+  await row.getByRole("button", { name: "Execute" }).click();
+  await expect(page.locator(".report-card")).toContainText("Latest run: completed");
+  await expect(page.locator(".report-card")).toContainText("Recipients");
+  await expect(page.locator(".report-card")).toContainText("0");
+
+  await nav.getByRole("button", { name: "Audience", exact: true }).click();
+  await page.getByPlaceholder("Email").fill("added-after-empty@example.com");
+  await page.getByRole("button", { name: "Add contact" }).click();
+  await expect(page.getByText("added-after-empty@example.com")).toBeVisible();
+
+  await nav.getByRole("button", { name: "Campaigns", exact: true }).click();
+  const reusableRow = page.locator(".campaign-row").filter({ hasText: "Recover Empty Campaign" });
+  await expect(reusableRow).toContainText("completed");
+  await expect(reusableRow.getByRole("button", { name: "Edit" })).toBeVisible();
+  await expect(reusableRow.getByRole("button", { name: "Execute" })).toBeVisible();
+  await reusableRow.getByRole("button", { name: "Execute" }).click();
+  await expect(page.locator(".report-card")).toContainText("Latest run: queued");
+  await expect(page.locator(".report-card")).toContainText("Queued");
+});

@@ -160,12 +160,13 @@ function Campaigns({setError}) {
     {(!editorOpen || report) && <div className="panel table-panel">
       {loading ? <div className="empty">Loading campaigns…</div> : campaigns.length ? campaigns.map(c => {
         const retryable = c.status === "failed" || c.status === "partial";
-        const executable = c.status === "draft" || c.status === "scheduled" || retryable;
+        const editable = c.status === "draft" || c.status === "scheduled" || c.status === "completed";
+        const executable = editable || retryable;
         return <div className="campaign-row" key={c.id}>
           <div><b>{c.name}</b><small>{c.subject} · {c.audience_name}</small></div>
           <Status value={c.status}/>
           <div className="row-actions">
-            {(c.status === "draft" || c.status === "scheduled") && <button className="secondary small-btn" onClick={() => edit(c)}>Edit</button>}
+            {editable && <button className="secondary small-btn" onClick={() => edit(c)}>Edit</button>}
             <button className="secondary small-btn" onClick={() => showReport(c)}>Report</button>
             {executable && <button className="primary small-btn" onClick={() => execute(c)}>{retryable ? "Retry" : "Execute"}</button>}
           </div>
