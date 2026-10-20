@@ -25,7 +25,9 @@ Branches discovered: `main`, `development`, `chore/startup-docker-support`.
 - `.github/workflows/ci.yml`: reduced permission from `contents: write` to `contents: read`; removed automatic lockfile commit/push on development; uses `npm ci` in build and integration jobs.
 - `src/main.jsx`, `src/style.css`: rendered sidebar icons as separate elements with accessible labels; mobile widths no longer hide the icons along with their labels.
 - `tests/e2e/campaign-workflow.spec.js`: added a mobile navigation regression test that checks visible icons/button accessibility and navigation at 390px viewport width.
-- `README.md`: documented public HTTPS `VITE_API_URL` build-time configuration and SameSite=Strict cookie domain requirements.
+- `Dockerfile`, `docker-compose.yml`, `nginx.conf`: replaced the Vite preview runtime with an unprivileged Nginx static server; Docker maps host port 5173 to container port 8080; Nginx adds baseline security headers and SPA fallback.
+- `README.md`: documented public HTTPS `VITE_API_URL` build-time configuration, the static-server container, and SameSite=Strict cookie domain requirements.
+- `.github/workflows/ci.yml`: added a production container smoke test for the built HTML and Nginx security headers.
 - `PROJECT_PROGRESS.md`: retained this audit and deployment checkpoint.
 
 ## CI and test verification
@@ -43,7 +45,10 @@ Branches discovered: `main`, `development`, `chore/startup-docker-support`.
 - A deployed backend, PostgreSQL/migrations, secure server-side environment configuration, and optional SMTP configuration remain external prerequisites.
 - No secrets are stored here.
 
+## Latest container hardening commit and pending verification
+- The production Nginx container and image-build CI are committed on `main`; latest code commit at start of this check: `45c59afbf59d03695fdfa031e11cb918c5494363`.
+- The CI workflow is being extended to run the container and verify the generated HTML plus key response headers. The result for that new workflow step must be confirmed after its run completes.
+
 ## Next action
-1. Verify the final CI conclusion for the latest `main` commit.
-2. Verify the backend hardening commit that rejects default database credentials.
-3. Inspect the final remote heads and record exact SHAs/remaining deployment prerequisites.
+1. Verify the production container smoke test and the full integration job on the latest `main` SHA.
+2. Re-check final remote heads and deployment prerequisites.

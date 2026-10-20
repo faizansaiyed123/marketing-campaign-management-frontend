@@ -21,6 +21,19 @@ jobs:
       - run: npm run build
       - name: Build production container image
         run: docker build --build-arg VITE_API_URL=https://api.example.com -t marketing-campaign-management-frontend:ci .
+      - name: Smoke-test production container
+        run: |
+          docker run --detach --name marketing-campaign-frontend-ci -p 127.0.0.1:18080:8080 marketing-campaign-management-frontend:ci
+          trap 'docker rm -f marketing-campaign-frontend-ci >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:18080/ -o /tmp/frontend-index.html -D /tmp/frontend-headers.txt; then
+              break
+            fi
+            sleep 1
+          done
+          grep -q 'id="root"' /tmp/frontend-index.html
+          grep -qi '^x-frame-options: DENY' /tmp/frontend-headers.txt
+          grep -qi '^x-content-type-options: nosniff' /tmp/frontend-headers.txt
 
   integration:
     runs-on: ubuntu-latest
