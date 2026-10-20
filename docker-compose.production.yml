@@ -1,5 +1,8 @@
 services:
   frontend:
+    build:
+      args:
+        DEPLOY_TARGET: production
     networks:
       default: {}
       public_proxy:

@@ -26,7 +26,7 @@ The frontend uses the existing Vite variable:
 VITE_API_URL=http://localhost:8000
 ```
 
-Vite injects this value at build time; the API client normalizes an optional trailing slash. The Docker image embeds `VITE_API_URL` into the static assets at build time, so rebuild the image after changing the value:
+Vite injects this value at build time; the API client normalizes an optional trailing slash. The Docker image embeds `VITE_API_URL` into the static assets at build time, so rebuild the image after changing the value. The local Compose file retains the development default; the production overlay switches to a guarded build that rejects missing, insecure, localhost, or example API URLs:
 
 ```bash
 VITE_API_URL=http://localhost:8001 docker compose up --build
@@ -88,7 +88,7 @@ For cookie-based login to work, configure the backend's `FRONTEND_ORIGIN` to the
 
 The repository contains a `vercel.json` for the Vite build and SPA fallback. You do not need to install the Vercel CLI for the Git-connected dashboard workflow.
 
-1. In your existing Vercel dashboard, import or select this frontend repository, keep the project root at the repository root, and set the production branch to `main`. The checked-in configuration uses `npm ci` from the committed lockfile, the Vite framework preset, `npm run build:vercel`, and `dist` output. The build fails with a clear error if VITE_API_URL is missing, non-HTTPS, or a reserved example/localhost URL.
+1. In your existing Vercel dashboard, import or select this frontend repository, keep the project root at the repository root, and set the production branch to `main`. The checked-in configuration uses `npm ci` from the committed lockfile, the Vite framework preset, `npm run build:vercel`, and `dist` output. The production build fails with a clear error if VITE_API_URL is missing, non-HTTPS, or a reserved example/localhost URL. The same guard is used by Vercel and the Docker production overlay.
 2. In Project Settings → Environment Variables, add `VITE_API_URL=https://api.yourdomain.com` for Production. Replace `yourdomain.com` with a domain you own. This value is public, embedded into the frontend during build, and changing it requires a new deployment.
 3. Assign a custom HTTPS domain such as `app.yourdomain.com` to the frontend project. Configure the backend API on a sibling subdomain such as `api.yourdomain.com`; this keeps the backend's `SameSite=Strict` session cookie same-site.
 4. Deploy the backend using its API-only overlay and `Caddyfile.api-only`; the backend README contains the required DNS, TLS, database, Redis, secure cookie, CSRF-origin, and SMTP setup. Set the backend's `FRONTEND_ORIGIN` to the exact frontend custom-domain origin.

@@ -6,17 +6,17 @@ The frontend application, production Docker image, Vercel deployment configurati
 - The report panel refreshes delivery status while the backend worker processes queued campaigns.
 - The campaign editor lists supported personalized fields: {{first_name}}, {{last_name}}, {{full_name}}, and {{email}}.
 - Empty-audience campaigns can be executed again after contacts are added; failed/partial campaigns can be edited before retry.
-- The Vercel production build fails with a clear message if VITE_API_URL is missing, non-HTTPS, localhost, or a reserved example placeholder.
+- Both the Vercel build and self-hosted Docker production build fail with a clear message if VITE_API_URL is missing, non-HTTPS, localhost, or a reserved example placeholder.
 - The production build configuration and its failure cases pass CI alongside Docker/container and Playwright tests.
 - No Vercel connector or CLI installation was performed.
 
 ## Repositories and verification
 - Frontend: https://github.com/faizansaiyed123/marketing-campaign-management-frontend
 - Backend: https://github.com/faizansaiyed123/marketing-campaign-management-backend
-- Current frontend application/configuration revision before this progress update: c3974c30c80b164091c160218a0c42d418a13f8c
-- Passing CI run for this revision: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39378747582
+- Current frontend application/configuration revision before this progress update: e6f710ec3e923986de9305393e33c70eaa588299
+- Last passing CI before this production Docker URL guard: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39378962904
 - Backend API-only/full-stack production deployment configuration is in the backend main branch and its CI workflow validates both overlays.
-- Frontend CI checks npm ci, Vercel SPA configuration, failure on missing/unsafe API URL, a valid HTTPS Vercel production build, normal Vite build, Compose configuration, production Docker image smoke test/security headers, and Playwright integration against backend main.
+- Frontend CI checks npm ci, Vercel SPA configuration, rejection of missing/unsafe API URLs, valid HTTPS Vercel build, Docker production build rejection of localhost, normal Vite build, Compose configuration, production Docker image smoke test/security headers, and Playwright integration against backend main.
 
 ## Application functionality
 - React + Vite workspace supports account registration/login/session/logout, dashboard, audiences/contacts, subscription changes, campaign create/edit/schedule/execute/report, saved templates, analytics, responsive navigation, and error/empty states.

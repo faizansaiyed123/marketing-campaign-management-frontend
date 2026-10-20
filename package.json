@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:e2e": "playwright test",
-    "build:vercel": "node scripts/check-vercel-env.mjs && vite build"
+    "build:vercel": "npm run build:production",
+    "build:production": "node scripts/check-production-api-url.mjs && vite build"
   },
   "dependencies": {
     "react": "^19.0.0",

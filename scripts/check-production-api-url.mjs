@@ -1,12 +1,12 @@
 const value = process.env.VITE_API_URL;
 
 function fail(message) {
-  console.error(`Vercel production build configuration error: ${message}`);
+  console.error(`Production frontend build configuration error: ${message}`);
   process.exit(1);
 }
 
 if (!value || !value.trim()) {
-  fail("set VITE_API_URL in the Vercel Production environment before deploying.");
+  fail("set VITE_API_URL in the production frontend environment before deploying.");
 }
 
 let apiUrl;
@@ -29,11 +29,7 @@ if (
 }
 
 const hostname = apiUrl.hostname.toLowerCase().replace(/\.$/, "");
-const reservedHosts = new Set([
-  "localhost",
-  "127.0.0.1",
-  "[::1]",
-]);
+const reservedHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const exampleDomains = ["example.com", "example.org", "example.net"];
 const usesReservedExampleDomain = exampleDomains.some(
   domain => hostname === domain || hostname.endsWith("." + domain)
@@ -44,7 +40,7 @@ if (
   usesReservedExampleDomain ||
   [".example", ".invalid", ".test", ".localhost"].some(suffix => hostname.endsWith(suffix))
 ) {
-  fail("VITE_API_URL must use the real public API hostname, not a localhost or example placeholder.");
+  fail("VITE_API_URL must use a real public API hostname, not localhost or an example placeholder.");
 }
 
 console.log(`Validated public API origin: ${apiUrl.origin}`);

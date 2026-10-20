@@ -20,30 +20,40 @@ jobs:
         run: npm ci
       - name: Validate Vercel SPA configuration
         run: node -e 'const c = require("./vercel.json"); if (c.framework !== "vite" || c.installCommand !== "npm ci" || c.buildCommand !== "npm run build:vercel" || c.outputDirectory !== "dist" || !c.rewrites?.some(r => r.source === "/(.*)" && r.destination === "/index.html")) process.exit(1)'
-      - name: Ensure Vercel build refuses missing or unsafe API URL
+      - name: Ensure production build refuses missing or unsafe API URLs
         run: |
-          if npm run build:vercel >/dev/null 2>&1; then
-            echo "Vercel build unexpectedly accepted a missing VITE_API_URL." >&2
+          if npm run build:production >/tmp/missing-api-url.log 2>&1; then
+            echo "Production build unexpectedly accepted a missing VITE_API_URL." >&2
             exit 1
           fi
-          if VITE_API_URL=http://localhost:8000 npm run build:vercel >/dev/null 2>&1; then
-            echo "Vercel build unexpectedly accepted an insecure localhost API URL." >&2
+          grep -q "set VITE_API_URL" /tmp/missing-api-url.log
+          if VITE_API_URL=http://localhost:8000 npm run build:production >/tmp/insecure-api-url.log 2>&1; then
+            echo "Production build unexpectedly accepted an insecure localhost API URL." >&2
             exit 1
           fi
-          if VITE_API_URL=https://api.example.com npm run build:vercel >/dev/null 2>&1; then
-            echo "Vercel build unexpectedly accepted a reserved example API domain." >&2
+          grep -q "absolute HTTPS API origin" /tmp/insecure-api-url.log
+          if VITE_API_URL=https://api.example.com npm run build:production >/tmp/example-api-url.log 2>&1; then
+            echo "Production build unexpectedly accepted a reserved example API domain." >&2
             exit 1
           fi
+          grep -q "real public API hostname" /tmp/example-api-url.log
       - name: Build Vercel production bundle
         env:
           VITE_API_URL: https://api.campaign-ci.com
         run: npm run build:vercel
       - name: Validate production Compose overlay
         env:
-          VITE_API_URL: https://api.example.com
+          VITE_API_URL: https://api.campaign-ci.com
         run: docker compose -f docker-compose.yml -f docker-compose.production.yml config
       - name: Build production container image
-        run: docker build --build-arg VITE_API_URL=https://api.example.com -t marketing-campaign-management-frontend:ci .
+        run: docker build --build-arg VITE_API_URL=https://api.campaign-ci.com --build-arg DEPLOY_TARGET=production -t marketing-campaign-management-frontend:ci .
+      - name: Ensure Docker production build rejects unsafe API URL
+        run: |
+          if docker build --target build --build-arg VITE_API_URL=http://localhost:8000 --build-arg DEPLOY_TARGET=production -t marketing-campaign-management-frontend:invalid-api-url . >/tmp/docker-invalid-api-url.log 2>&1; then
+            echo "Docker production build unexpectedly accepted a localhost API URL." >&2
+            exit 1
+          fi
+          grep -q "absolute HTTPS API origin" /tmp/docker-invalid-api-url.log
       - name: Smoke-test production container
         run: |
           docker run --detach --name marketing-campaign-frontend-ci -p 127.0.0.1:18080:8080 marketing-campaign-management-frontend:ci
