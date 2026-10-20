@@ -16,7 +16,7 @@ Build and start the frontend from this repository:
 docker compose up --build
 ```
 
-The frontend is available at http://localhost:5173.
+The frontend is available at http://localhost:5173. The container serves the built static assets with an unprivileged Nginx image; Vite's preview server is used only for local/test workflows.
 
 ### Environment variables
 
@@ -26,7 +26,7 @@ The frontend uses the existing Vite variable:
 VITE_API_URL=http://localhost:8000
 ```
 
-Vite injects this value at build time. Because the Docker image builds the frontend before starting the Vite preview server, rebuild the image after changing `VITE_API_URL`:
+Vite injects this value at build time. The Docker image embeds `VITE_API_URL` into the static assets at build time, so rebuild the image after changing the value:
 
 ```bash
 VITE_API_URL=http://localhost:8001 docker compose up --build
@@ -36,7 +36,7 @@ Do not commit `.env` files containing secrets.
 
 ### Backend URL
 
-The frontend calls the backend through `VITE_API_URL`. The Docker Compose file defaults to the verified backend development port, `8000`, but the value remains configurable and is not embedded in the application source.
+The frontend calls the backend through `VITE_API_URL`. The Docker Compose build defaults to the backend development port, `8000`, but the value remains configurable and is embedded into the built frontend assets rather than supplied at runtime.
 
 For the normal local setup, run the backend independently from:
 
@@ -55,6 +55,8 @@ docker compose down
 ```bash
 docker compose up --build
 ```
+
+The production image uses Nginx on container port `8080` and runs as an unprivileged user. Compose maps it to host port `5173` for a familiar local URL.
 
 ## Manual development
 

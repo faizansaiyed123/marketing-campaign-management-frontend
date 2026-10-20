@@ -19,6 +19,8 @@ jobs:
       - name: Install dependencies from lockfile
         run: npm ci
       - run: npm run build
+      - name: Build production container image
+        run: docker build --build-arg VITE_API_URL=https://api.example.com -t marketing-campaign-management-frontend:ci .
 
   integration:
     runs-on: ubuntu-latest
