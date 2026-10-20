@@ -1,5 +1,7 @@
 # Marketing Campaign Management — Frontend
 
+> **Live frontend:** https://marketing-campaign-management-front.vercel.app
+
 React 19 + Vite frontend for the campaign management platform.
 
 ## Requirements
