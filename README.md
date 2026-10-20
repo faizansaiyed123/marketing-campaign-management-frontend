@@ -26,7 +26,7 @@ The frontend uses the existing Vite variable:
 VITE_API_URL=http://localhost:8000
 ```
 
-Vite injects this value at build time. The Docker image embeds `VITE_API_URL` into the static assets at build time, so rebuild the image after changing the value:
+Vite injects this value at build time; the API client normalizes an optional trailing slash. The Docker image embeds `VITE_API_URL` into the static assets at build time, so rebuild the image after changing the value:
 
 ```bash
 VITE_API_URL=http://localhost:8001 docker compose up --build
