@@ -7,7 +7,8 @@ Prepare the existing frontend to work reliably with the separate backend and for
 - Repository: https://github.com/faizansaiyed123/marketing-campaign-management-frontend
 - Target/default branch: `main`; branch metadata reports protection disabled.
 - Initial baseline SHA inspected: `8e2f4ca51609064893ae226748b5667a97ac8599`.
-- Latest application-code commit: `f17497468bcc3c577f414d44a3993615051e2417` — mobile navigation accessibility/visibility fix.
+- Latest application/test fix commit: `5e3e84745b0974868c7b42ea5929f847b133e697` — scoped the campaign audience selector in Playwright to avoid collision with the navigation button.
+- Latest mobile navigation fix: `f17497468bcc3c577f414d44a3993615051e2417`.
 - Latest CI configuration commit: `63ddd355c12911212fd86a91d616712f873bb580`.
 - Latest deployment documentation commit before this progress refresh: `57ead18ae97272cbdb3874e5dc1b5eb60e513f2b`.
 - GitHub connection reports admin/maintain/push permissions.
@@ -35,6 +36,7 @@ Branches discovered: `main`, `development`, `chore/startup-docker-support`.
 - CI hardening commit `63ddd355c129` passed its updated CI run: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39286677859
 - Mobile-navigation commit `f17497468bcc` passed both jobs: frontend production build and Playwright integration tests, including backend migrations/setup and the browser workflow: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39287160573
 - For docs commit `57ead18ae972`, the build and integration jobs both reported `completed / success` at the last jobs API check. The overall run had not yet published its final conclusion: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39287610762
+- Two newer integration runs (`39361998680`, `39362043595`) failed only in the saved-template browser test because `page.getByLabel("Audience")` matched both the new accessible navigation button and the campaign form's select. The other five browser tests passed, including the mobile navigation regression. The test now scopes the selector to `form.editor` in commit `5e3e84745b0974868c7b42ea5929f847b133e697`; its CI run is queued and must pass before treating integration as green: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39362831207
 - The local environment did not have a usable GitHub clone, so no local test run is claimed.
 
 ## Deployment status and prerequisites
@@ -50,5 +52,5 @@ Branches discovered: `main`, `development`, `chore/startup-docker-support`.
 - The CI workflow is being extended to run the container and verify the generated HTML plus key response headers. The result for that new workflow step must be confirmed after its run completes.
 
 ## Next action
-1. Verify the production container smoke test and the full integration job on the latest `main` SHA.
+1. Verify CI for the selector fix at `5e3e84745b0974868c7b42ea5929f847b133e697`; confirm all Playwright tests pass.
 2. Re-check final remote heads and deployment prerequisites.
