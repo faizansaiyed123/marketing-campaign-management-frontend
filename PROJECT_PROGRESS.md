@@ -1,56 +1,55 @@
 # Project Progress — Marketing Campaign Management Frontend
 
-## Objective and acceptance criteria
-Prepare the existing frontend to work reliably with the separate backend and for production deployment. Preserve existing functionality, verify source/configuration, record actual test results, and document external blockers.
+## Objective and current status
+Prepare the existing frontend to work reliably with the separate backend and for production deployment while preserving current functionality.
+- Source/configuration audit completed for the current main-line application.
+- Production build and Playwright frontend/backend integration CI are passing.
+- No live deployment has been performed; production hosting, domains, TLS, and public backend configuration remain external prerequisites.
 
-## Repository baseline and current state
+## Repository and latest verified revision
 - Repository: https://github.com/faizansaiyed123/marketing-campaign-management-frontend
-- Target/default branch: `main`; branch metadata reports protection disabled.
-- Initial baseline SHA inspected: `8e2f4ca51609064893ae226748b5667a97ac8599`.
-- Latest application/test fix commit: `5e3e84745b0974868c7b42ea5929f847b133e697` — scoped the campaign audience selector in Playwright to avoid collision with the navigation button.
-- Latest mobile navigation fix: `f17497468bcc3c577f414d44a3993615051e2417`.
-- Latest CI configuration commit: `63ddd355c12911212fd86a91d616712f873bb580`.
-- Latest deployment documentation commit before this progress refresh: `57ead18ae97272cbdb3874e5dc1b5eb60e513f2b`.
-- GitHub connection reports admin/maintain/push permissions.
-- A local clone attempt failed because the execution environment could not resolve github.com. Repository edits were committed through the GitHub integration; there are no local uncommitted project changes.
+- Target branch: `main`
+- Current inspected main SHA at this checkpoint: `3b2b61c3ba24ea21dbaf7b13e7425d2f17dfe84b`
+- Recent relevant commits:
+  - `45c59afbf59d` — serve built assets with unprivileged Nginx.
+  - `2147f961db65` — add production container smoke test.
+  - `6c5322486eac` — normalize API base URL and harden static routing.
+  - `d04a6d16f828` — saved campaign template workspace.
+  - `5e3e84745b09` — scope the campaign Audience selector to the editor in the E2E test.
+  - `3b2b61c3ba24` — record passing integration regression run.
+- GitHub access was verified earlier with push/admin permissions. Local cloning was unavailable because github.com did not resolve from the local execution environment; all changes were made and reviewed through GitHub APIs.
 
-## Branch and source audit
-Branches discovered: `main`, `development`, `chore/startup-docker-support`.
-- Recursive file-tree and blob-SHA comparison found both non-main branches behind main with zero commits ahead.
-- `development` has no branch-only files; main contains newer Docker files, app code, and documentation.
-- `chore/startup-docker-support` contains a branch-only `run.py` that tries to locate/start the separate backend from the frontend repository. The later main-branch removal of that coupled runner is intentional; it remains excluded.
-- Frontend API path references were mapped to backend routers for authentication, audiences/contacts, campaigns, dashboard, and analytics. The major route families and methods align.
-- No branches were merged wholesale.
+## Implemented changes and current design
+- React 19 + Vite frontend consumes `VITE_API_URL` and includes credentialed fetch requests for the HttpOnly session cookie.
+- API base URL normalization removes a trailing slash before composing endpoints.
+- Frontend UI covers authentication, dashboard, audiences/contacts, campaign creation/editing/scheduling/execution/reporting, saved reusable templates, analytics, responsive navigation, and loading/error states.
+- Campaign template APIs are referenced as `GET/POST /api/v1/templates` and `PATCH/DELETE /api/v1/templates/{id}`; these are implemented in backend main.
+- Docker builds assets in a Node stage, serves them with the `nginxinc/nginx-unprivileged` image as a non-root user on container port 8080, and supplies SPA fallback plus baseline security headers.
+- Docker Compose maps host port 5173 to container port 8080 for local convenience; the API URL is embedded at build time.
+- Frontend CI has `contents: read`, installs locked dependencies with `npm ci`, builds the application/container, smoke-tests the static container, and runs Playwright end-to-end tests against the current backend main branch.
+- No startup runner that assumes a sibling backend checkout is shipped with frontend main; the old branch-only runner remains intentionally excluded.
 
-## Changes committed
-- `.github/workflows/ci.yml`: reduced permission from `contents: write` to `contents: read`; removed automatic lockfile commit/push on development; uses `npm ci` in build and integration jobs.
-- `src/main.jsx`, `src/style.css`: rendered sidebar icons as separate elements with accessible labels; mobile widths no longer hide the icons along with their labels.
-- `tests/e2e/campaign-workflow.spec.js`: added a mobile navigation regression test that checks visible icons/button accessibility and navigation at 390px viewport width.
-- `Dockerfile`, `docker-compose.yml`, `nginx.conf`: replaced the Vite preview runtime with an unprivileged Nginx static server; Docker maps host port 5173 to container port 8080; Nginx adds baseline security headers and SPA fallback.
-- `README.md`: documented public HTTPS `VITE_API_URL` build-time configuration, the static-server container, and SameSite=Strict cookie domain requirements.
-- `.github/workflows/ci.yml`: added a production container smoke test for the built HTML and Nginx security headers.
-- `PROJECT_PROGRESS.md`: retained this audit and deployment checkpoint.
+## Branch comparison
+Branches inspected: `main`, `development`, and `chore/startup-docker-support`.
+Recursive trees and blob SHAs showed both non-main branches behind main with zero commits ahead. The old branch-only `run.py` attempts cross-repository backend startup and is intentionally not reintroduced. No branches were blindly merged.
 
 ## CI and test verification
-- Historical baseline at SHA `8e2f4ca51609` passed CI: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/36958335105
-- CI hardening commit `63ddd355c129` passed its updated CI run: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39286677859
-- Mobile-navigation commit `f17497468bcc` passed both jobs: frontend production build and Playwright integration tests, including backend migrations/setup and the browser workflow: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39287160573
-- For docs commit `57ead18ae972`, the build and integration jobs both reported `completed / success` at the last jobs API check. The overall run had not yet published its final conclusion: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39287610762
-- Two integration runs (`39361998680`, `39362043595`) failed in the saved-template browser test because `page.getByLabel("Audience")` matched both the accessible navigation button and the campaign form's select. The other five browser tests passed, including the mobile navigation regression. Fixed by scoping the selector to `form.editor` in commit `5e3e84745b0974868c7b42ea5929f847b133e697`; the subsequent CI run passed both the build and integration jobs, including the complete Playwright suite: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39362831207
-- The local environment did not have a usable GitHub clone, so no local test run is claimed.
+- Latest checked run on main SHA `3b2b61c3ba24` completed successfully: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39362965002
+- This CI workflow runs the dependency-locked build, production Docker image build/container smoke test, and integration job with migrations and Playwright.
+- The selector collision was reproduced in runs `39361998680` and `39362043595`: the unscoped accessible-name query matched the sidebar Audience button and editor select. It was fixed in `5e3e84745b0974868c7b42ea5929f847b133e697`; full CI passed after the fix: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39362831207
+- The mobile navigation regression test had previously passed as part of the full Playwright suite: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39362831207
+- Do not claim a separately run local test suite; no local clone was available.
 
-## Deployment status and prerequisites
-- No live deployment has been attempted; no production URL is claimed.
-- Set `VITE_API_URL` to the public HTTPS backend origin at build time; rebuild the frontend image after changing this variable.
-- Configure backend `FRONTEND_ORIGIN` to the exact HTTPS frontend origin.
-- Since the backend session cookie uses `SameSite=Strict`, deploy frontend and API using HTTPS custom domains under the same registrable domain (for example, `app.example.com` and `api.example.com`). Unrelated default hostnames may block cookie-based sessions.
-- A deployed backend, PostgreSQL/migrations, secure server-side environment configuration, and optional SMTP configuration remain external prerequisites.
-- No secrets are stored here.
-
-## Latest container hardening commit and pending verification
-- The production Nginx container and image-build CI are committed on `main`; latest code commit at start of this check: `45c59afbf59d03695fdfa031e11cb918c5494363`.
-- The CI workflow is being extended to run the container and verify the generated HTML plus key response headers. The result for that new workflow step must be confirmed after its run completes.
+## Deployment prerequisites and known limits
+- No production URL, DNS/TLS setup, cloud hosting project, or deployed service has been created/verified.
+- Build with `VITE_API_URL` set to the public HTTPS backend origin; changing it requires rebuilding the image.
+- Configure backend `FRONTEND_ORIGIN` to the exact public frontend origin.
+- The backend session cookie uses `SameSite=Strict`; use HTTPS custom domains under the same registrable domain (for example `app.example.com` and `api.example.com`) so cookie-based authentication behaves as expected.
+- The backend PostgreSQL database, migrations, strong runtime secrets, worker process, and optional SMTP credentials must be configured separately.
+- The frontend API build variable is public; do not place backend secrets or SMTP credentials in any `VITE_*` variable.
+- No secrets are recorded in this file.
 
 ## Next action
-1. Verify the latest documentation-only CI run finishes; application/test commit `5e3e84745b0974868c7b42ea5929f847b133e697` has passed full CI.
-2. Re-check final remote heads and deployment prerequisites.
+1. Complete the deployment environment setup with a selected hosting target, DNS/TLS, and production variables.
+2. Deploy the backend API and worker with persistent PostgreSQL, then deploy the frontend with the API URL embedded at build time.
+3. Verify production HTTPS health, registration/login/logout, template isolation, audience/campaign lifecycle, tracking, and real SMTP delivery if configured.
