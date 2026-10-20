@@ -137,7 +137,7 @@ test("mobile workspace navigation remains visible and accessible", async ({ page
 
 test("authentication errors are surfaced in the browser", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).first().click();
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
   await page.getByLabel("Email").fill("does-not-exist@example.com");
   await page.getByLabel("Password").fill("wrong-password");
@@ -176,7 +176,7 @@ test("session survives reload, duplicate-contact errors are surfaced, and logout
 
   await page.locator(".logout").click();
   await expect(page.getByRole("heading", { name: /Make room for/ })).toBeVisible();
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).first().click();
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
 });
 
