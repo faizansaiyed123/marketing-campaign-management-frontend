@@ -1,0 +1,12 @@
+services:
+  frontend:
+    networks:
+      default: {}
+      public_proxy:
+        aliases:
+          - campaign-frontend
+
+networks:
+  public_proxy:
+    name: campaign_proxy
+    external: true

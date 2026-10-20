@@ -84,6 +84,30 @@ Because Vite embeds this variable into the generated assets, rebuild the image w
 
 For cookie-based login to work, configure the backend's `FRONTEND_ORIGIN` to the exact HTTPS frontend origin and use `COOKIE_SECURE=true`, `COOKIE_NAME=__Host-campaign_session`, and a unique random `JWT_SECRET_KEY` in production. The backend's session cookie defaults to `SameSite=Strict`, so deploy the frontend and API on custom HTTPS domains under the same registrable domain (for example, `app.example.com` and `api.example.com`). Unrelated default provider domains may cause browsers to block the session cookie. See the backend repository README for the corresponding database, migration, and SMTP settings.
 
+### Single-host HTTPS deployment with Caddy
+
+The optional `docker-compose.production.yml` overlay connects this frontend to the backend repository's Caddy reverse proxy through a shared Docker network. It leaves the normal local command above available without requiring this network.
+
+On the server, create the shared network once:
+
+```bash
+docker network create campaign_proxy
+```
+
+In the frontend repository, create a local `.env` file (do not commit it) containing:
+
+```env
+VITE_API_URL=https://api.example.com
+```
+
+Replace the example domain with your API domain. After DNS for both the frontend and API custom domains points to the server, start the backend stack using the instructions in the backend README, then start this frontend:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.production.yml up --build -d
+```
+
+The frontend container is published on loopback only; public HTTPS traffic should arrive through Caddy on ports 80/443. Configure your host firewall to expose only the required public web ports and SSH administration. Keep both domains under the same registrable domain for the session cookie to work reliably. The example domains are placeholders, not deployed addresses.
+
 ## Implemented
 
 - Registration and login states backed by the real API.
