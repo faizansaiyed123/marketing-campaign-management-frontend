@@ -19,6 +19,8 @@ function Campaigns({setError}) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [refreshingReport, setRefreshingReport] = useState(false);
+  const [reportPollingTimedOut, setReportPollingTimedOut] = useState(false);
+  const [pollCycle, setPollCycle] = useState(0);
   const [form, setForm] = useState({name:"",audience_id:"",subject:"",body_html:"",scheduled_at:""});
 
   async function load() {
@@ -51,6 +53,7 @@ function Campaigns({setError}) {
   useEffect(() => {
     if (!activeReportCampaignId || !reportHasQueuedDeliveries) {
       setRefreshingReport(false);
+      setReportPollingTimedOut(false);
       return;
     }
 
@@ -58,6 +61,7 @@ function Campaigns({setError}) {
     let attempts = 0;
     let timer;
     setRefreshingReport(true);
+    setReportPollingTimedOut(false);
 
     async function refreshReport() {
       if (cancelled) return;
@@ -74,6 +78,9 @@ function Campaigns({setError}) {
           timer = window.setTimeout(refreshReport, 3000);
         } else {
           setRefreshingReport(false);
+          if (next.latest_run_status === "queued" && next.summary.queued > 0) {
+            setReportPollingTimedOut(true);
+          }
         }
       } catch (e) {
         if (!cancelled) {
@@ -88,7 +95,7 @@ function Campaigns({setError}) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [activeReportCampaignId, report?.latest_run_status, report?.summary?.queued, reportHasQueuedDeliveries, setError]);
+  }, [activeReportCampaignId, report?.latest_run_status, report?.summary?.queued, reportHasQueuedDeliveries, pollCycle, setError]);
 
   function newCampaign() {
     setSelected(null);
@@ -147,6 +154,20 @@ function Campaigns({setError}) {
     }
   }
 
+  async function refreshReportNow() {
+    if (!activeReportCampaignId) return;
+    try {
+      const next = await api("/api/v1/campaigns/" + activeReportCampaignId + "/report");
+      setReport(next);
+      setReportPollingTimedOut(false);
+      if (next.latest_run_status === "queued" && next.summary.queued > 0) {
+        setPollCycle(cycle => cycle + 1);
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
   return <div className="content">
     <div className="page-title">
       <div>
@@ -179,6 +200,8 @@ function Campaigns({setError}) {
         <p aria-live="polite">Latest run: {report.latest_run_status || "none"}{refreshingReport ? " · Refreshing delivery status…" : ""}</p>
         <p className="muted-copy">Totals include delivery attempts across runs, including retries.</p>
         {report.latest_run_status === "queued" && <p className="muted-copy">Deliveries are queued for the background worker. The report refreshes automatically while processing is active.</p>}
+        {reportPollingTimedOut && reportHasQueuedDeliveries && <p className="muted-copy">Still queued after automatic refresh. Use Refresh report to check again; SMTP or the worker may need attention.</p>}
+        <button className="secondary small-btn" type="button" onClick={refreshReportNow}>Refresh report</button>
       </div>
       <div className="mini-stats">{Object.entries({Attempts:report.summary.total,Queued:report.summary.queued,Sent:report.summary.sent,Failed:report.summary.failed,Skipped:report.summary.skipped,Opened:report.summary.opened,Clicked:report.summary.clicked}).map(([k,v])=><div key={k}><strong>{v}</strong><small>{k}</small></div>)}</div>
     </div>}
