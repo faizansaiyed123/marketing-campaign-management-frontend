@@ -101,11 +101,11 @@ test("saved templates are private and populate a new campaign", async ({ page })
   await expect(page.getByLabel("Subject")).toHaveValue("Welcome {{first_name}}");
   await expect(page.getByLabel("Message HTML")).toHaveValue("<p>Hello {{first_name}}, welcome aboard.</p>");
   await page.getByLabel("Campaign name").fill("Template-based campaign");
-  await page.getByLabel("Audience").selectOption({ label: new RegExp(audienceName).source });
+  const audienceOption = page.getByLabel("Audience").locator("option").filter({ hasText: audienceName });
+  await page.getByLabel("Audience").selectOption(await audienceOption.getAttribute("value"));
   await page.getByRole("button", { name: "Save campaign" }).click();
   await expect(page.getByText("Template-based campaign", { exact: true })).toBeVisible();
 
-  await page.getByRole("button", { name: "Logout" }).click().catch(() => {});
 });
 
 test("mobile workspace navigation remains visible and accessible", async ({ page }) => {
