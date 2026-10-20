@@ -88,7 +88,7 @@ For cookie-based login to work, configure the backend's `FRONTEND_ORIGIN` to the
 
 The repository contains a `vercel.json` for the Vite build and SPA fallback. You do not need to install the Vercel CLI for the Git-connected dashboard workflow.
 
-1. In your existing Vercel dashboard, import or select this frontend repository, keep the project root at the repository root, and set the production branch to `main`. The checked-in configuration sets the Vite framework preset, `npm run build`, and `dist` output.
+1. In your existing Vercel dashboard, import or select this frontend repository, keep the project root at the repository root, and set the production branch to `main`. The checked-in configuration sets the Vite framework preset, `npm run build:vercel`, and `dist` output. The build fails with a clear error if VITE_API_URL is missing, non-HTTPS, or a reserved example/localhost URL.
 2. In Project Settings → Environment Variables, add `VITE_API_URL=https://api.your-real-domain.example` for Production. This value is public, embedded into the frontend during build, and changing it requires a new deployment.
 3. Assign a custom HTTPS domain such as `app.your-real-domain.example` to the frontend project. Configure the backend API on a sibling subdomain such as `api.your-real-domain.example`; this keeps the backend's `SameSite=Strict` session cookie same-site.
 4. Deploy the backend using its API-only overlay and `Caddyfile.api-only`; the backend README contains the required DNS, TLS, database, Redis, secure cookie, CSRF-origin, and SMTP setup. Set the backend's `FRONTEND_ORIGIN` to the exact frontend custom-domain origin.
