@@ -39,7 +39,7 @@ jobs:
             fi
           }
           expect_failure "a missing API URL" "set VITE_API_URL" /tmp/missing-api-url.log npm run build:production
-          expect_failure "an HTTP localhost API URL" "absolute HTTPS API origin" /tmp/insecure-api-url.log env VITE_API_URL=http://localhost:8000 npm run build:production
+          expect_failure "an HTTP localhost API URL" "VITE_API_URL must be an HTTPS origin" /tmp/insecure-api-url.log env VITE_API_URL=http://localhost:8000 npm run build:production
           expect_failure "a reserved example API domain" "real public API hostname" /tmp/example-api-url.log env VITE_API_URL=https://api.example.com npm run build:production
       - name: Build Vercel production bundle
         env:
@@ -57,7 +57,7 @@ jobs:
             echo "Docker production build unexpectedly accepted a localhost API URL." >&2
             exit 1
           fi
-          grep -q "absolute HTTPS API origin" /tmp/docker-invalid-api-url.log
+          grep -q "VITE_API_URL must be an HTTPS origin" /tmp/docker-invalid-api-url.log
       - name: Smoke-test production container
         run: |
           docker run --detach --name marketing-campaign-frontend-ci -p 127.0.0.1:18080:8080 marketing-campaign-management-frontend:ci
