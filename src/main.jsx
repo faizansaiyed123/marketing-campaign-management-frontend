@@ -2,10 +2,11 @@ import React,{useEffect,useState}from"react";
 import{createRoot}from"react-dom/client";
 import"./style.css";
 const API=(import.meta.env.VITE_API_URL||"").replace(/\/+$/,"");
-const DEMO_MODE=!API;
+const DEMO_MODE=!API&&import.meta.env.DEV;
+function currentRoute(){const path=window.location.pathname.replace(/\/+$/,"")||"/";return ["/login","/register","/app"].includes(path)?path:"/"}
 function toLocalDateTime(iso){if(!iso)return"";const d=new Date(iso);const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`}
-async function api(path,options={}){if(!API)throw new Error("Backend is not connected yet. The frontend is deployed, but this feature will work after the backend is deployed and VITE_API_URL is configured.");const r=await fetch(API+path,{credentials:"include",headers:options.body?{"Content-Type":"application/json",...(options.headers||{})}:options.headers,...options});if(r.status===204)return null;let d=null;try{d=await r.json()}catch{}if(!r.ok){const error=new Error(d?.detail||"Something went wrong");error.status=r.status;throw error}return d}
-function AuthPage({onLogin,initialRegistering=false,onBack}){const[registering,setRegistering]=useState(initialRegistering),[form,setForm]=useState({name:"",email:"",password:""}),[busy,setBusy]=useState(false),[error,setError]=useState("");async function submit(e){e.preventDefault();setBusy(true);setError("");try{onLogin(await api(registering?"/api/v1/auth/register":"/api/v1/auth/login",{method:"POST",body:JSON.stringify(form)}))}catch(e){setError(e.message)}finally{setBusy(false)}}return <div className="auth-shell"><div className="auth-card"><div className="brand centered"><i>✳</i> orbit<span>.campaigns</span></div><button type="button" className="auth-back-button" onClick={onBack}>← Back to home</button><div className="eyebrow">CAMPAIGN WORKSPACE</div><h1>{registering?"Create your workspace":"Welcome back"}</h1><p className="muted-copy">{registering?"Start organizing campaigns and audiences in one place.":"Sign in to manage campaigns and see performance."}</p><form onSubmit={submit} className="stack">{registering&&<label>Name<input required minLength="2" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label>}<label>Email<input required type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></label><label>Password<input required minLength="8" type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></label>{error&&<div className="alert">{error}</div>}<button className="primary wide" disabled={busy}>{busy?"Working…":registering?"Create workspace":"Sign in"}</button></form><button className="link-button" onClick={()=>{setRegistering(!registering);setError("")}}>{registering?"Already have an account? Sign in":"New here? Create an account"}</button></div></div>}
+async function api(path,options={}){if(!API&&import.meta.env.DEV)throw new Error("The campaign API is not configured for local development. Set VITE_API_URL=http://localhost:8000 in your local environment.");const target=API?API+path:path;let r;try{r=await fetch(target,{credentials:"include",headers:options.body?{"Content-Type":"application/json",...(options.headers||{})}:options.headers,...options})}catch{throw new Error("Could not reach the campaign API. Check that the backend is deployed and BACKEND_API_URL is configured in Vercel.")}if(r.status===204)return null;let d=null;try{d=await r.json()}catch{}if(!r.ok){const error=new Error(d?.detail||(r.status===404?"The campaign API route was not found. Verify the configured backend URL.":r.status===502||r.status===503?"The campaign backend is not available yet. Check its deployment and BACKEND_API_URL in Vercel.":"Request failed ("+r.status+")."));error.status=r.status;throw error}return d}
+function AuthPage({onLogin,initialRegistering=false,onBack,onChangeMode}){const[registering,setRegistering]=useState(initialRegistering),[form,setForm]=useState({name:"",email:"",password:""}),[busy,setBusy]=useState(false),[error,setError]=useState("");async function submit(e){e.preventDefault();setBusy(true);setError("");try{onLogin(await api(registering?"/api/v1/auth/register":"/api/v1/auth/login",{method:"POST",body:JSON.stringify(form)}))}catch(e){setError(e.message)}finally{setBusy(false)}}return <div className="auth-shell"><div className="auth-card"><div className="brand centered"><i>✳</i> orbit<span>.campaigns</span></div><button type="button" className="auth-back-button" onClick={onBack}>← Back to home</button><div className="eyebrow">CAMPAIGN WORKSPACE</div><h1>{registering?"Create your workspace":"Welcome back"}</h1><p className="muted-copy">{registering?"Start organizing campaigns and audiences in one place.":"Sign in to manage campaigns and see performance."}</p><form onSubmit={submit} className="stack">{registering&&<label>Name<input required minLength="2" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label>}<label>Email<input required type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></label><label>Password<input required minLength="8" type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></label>{error&&<div className="alert">{error}</div>}<button className="primary wide" disabled={busy}>{busy?"Working…":registering?"Create workspace":"Sign in"}</button></form><button className="link-button" onClick={()=>{const next=!registering;setRegistering(next);setError("");onChangeMode?.(next)}}>{registering?"Already have an account? Sign in":"New here? Create an account"}</button></div></div>}
 function PublicHome({onGetStarted,onSignIn,onExplore}){
  const[menu,setMenu]=useState(false);
  const close=()=>setMenu(false);
@@ -58,110 +59,20 @@ function PublicHome({onGetStarted,onSignIn,onExplore}){
  </div>;
 }
 function App(){
- const[user,setUser]=useState(null),[view,setView]=useState("Overview"),[loading,setLoading]=useState(true),[error,setError]=useState(""),[bootError,setBootError]=useState(""),[showDashboard,setShowDashboard]=useState(false),[showAuth,setShowAuth]=useState(false),[registering,setRegistering]=useState(false);
- useEffect(()=>{if(DEMO_MODE){setLoading(false);return}api("/api/v1/auth/me").then(setUser).catch(e=>{if(e.status!==401)setBootError(e.message)}).finally(()=>setLoading(false))},[]);
+ const[user,setUser]=useState(null),[view,setView]=useState("Overview"),[loading,setLoading]=useState(true),[error,setError]=useState(""),[route,setRoute]=useState(()=>currentRoute());
+ function navigate(path,replace=false){if(window.location.pathname!==path)window.history[replace?"replaceState":"pushState"]({}, "", path);setRoute(path);setError("");window.scrollTo({top:0,behavior:"auto"});}
+ useEffect(()=>{const onPopState=()=>setRoute(currentRoute());window.addEventListener("popstate",onPopState);return()=>window.removeEventListener("popstate",onPopState)},[]);
+ useEffect(()=>{if(!loading&&route==="/app"&&!user)navigate("/login",true)},[loading,route,user]);
+ useEffect(()=>{if(DEMO_MODE){setLoading(false);return}api("/api/v1/auth/me").then(setUser).catch(()=>{}).finally(()=>setLoading(false))},[]);
  if(loading)return <div className="loading-screen">Loading workspace…</div>;
- if(bootError)return <div className="loading-screen"><div className="auth-card"><h2>Workspace unavailable</h2><p className="muted-copy">{bootError}. Check the API URL and backend service, then refresh.</p></div></div>;
- if(DEMO_MODE)return showDashboard?<PreviewApp onBackHome={()=>setShowDashboard(false)}/>:<PublicHome onGetStarted={()=>setShowDashboard(true)} onSignIn={()=>setShowDashboard(true)} onExplore={()=>setShowDashboard(true)}/>;
- if(!user)return showAuth?<AuthPage onLogin={setUser} initialRegistering={registering} onBack={()=>setShowAuth(false)}/>:<PublicHome onGetStarted={()=>{setRegistering(true);setShowAuth(true)}} onSignIn={()=>{setRegistering(false);setShowAuth(true)}} onExplore={()=>{setRegistering(false);setShowAuth(true)}}/>;
- async function logout(){try{await api("/api/v1/auth/logout",{method:"POST"});setUser(null)}catch(e){setError(e.message)}}
+ const completeLogin=(authenticatedUser)=>{setUser(authenticatedUser);navigate("/app")};
+ if(route==="/login"||route==="/register")return <AuthPage onLogin={completeLogin} initialRegistering={route==="/register"} onBack={()=>navigate("/")} onChangeMode={(next)=>navigate(next?"/register":"/login")}/>;
+ if(route!=="/app")return <PublicHome onGetStarted={()=>navigate(user?"/app":"/register")} onSignIn={()=>navigate(user?"/app":"/login")} onExplore={()=>navigate(user?"/app":"/register")}/>;
+ if(!user)return <AuthPage onLogin={completeLogin} initialRegistering={false} onBack={()=>navigate("/")}/>;
+ async function logout(){try{await api("/api/v1/auth/logout",{method:"POST"});setUser(null);navigate("/")}catch(e){setError(e.message)}}
  return <main className="app"><aside className="sidebar"><div className="brand"><i>✳</i> orbit<span>.campaigns</span></div><small className="label">WORKSPACE</small><nav>{["Overview","Campaigns","Templates","Audience","Analytics"].map(item=><button key={item} className={view===item?"active":""} aria-label={item} title={item} onClick={()=>{setView(item);setError("")}}><span className="nav-icon" aria-hidden="true">{item==="Overview"?"▦":item==="Campaigns"?"◉":item==="Templates"?"▧":item==="Audience"?"♧":"▤"}</span><span className="nav-label">{item}</span></button>)}</nav><small className="label manage">MANAGE</small><nav><button aria-label="Settings" title="Settings" onClick={()=>setView("Settings")}><span className="nav-icon" aria-hidden="true">⚙</span><span className="nav-label">Settings</span></button></nav><div className="side-bottom"><div className="help">ⓘ　<div><b>Need a hand?</b><small>Use the setup cards in Overview</small></div></div><div className="user"><b>{user.name[0].toUpperCase()}</b><span>{user.name}<small>{user.email}</small></span><button className="logout" onClick={logout}>↪</button></div></div></aside><section className="main"><header><span>Workspace　/　{view}</span><div><span className="connected">● Connected</span><b>{user.name[0].toUpperCase()}</b></div></header>{view==="Overview"&&<Overview setView={setView} setError={setError}/>} {view==="Campaigns"&&<Campaigns setError={setError}/>} {view==="Templates"&&<Templates setError={setError}/>} {view==="Audience"&&<Audience setError={setError}/>} {view==="Analytics"&&<Analytics setError={setError}/>} {view==="Settings"&&<Settings/>}{error&&<div className="toast">{error}</div>}</section></main>
 }
 
-function PreviewApp({onBackHome}){
-  const [view,setView] = useState("Overview");
-  const pages = {
-    Campaigns:{kicker:"CAMPAIGN MANAGEMENT",title:"Campaigns",description:"Create, organize, and plan the messages you send to your audience.",icon:"◉",emptyTitle:"Your next campaign starts here",emptyText:"Campaigns you create will be organized here, ready for you to plan and review."},
-    Templates:{kicker:"CONTENT LIBRARY",title:"Templates",description:"Keep your best messages consistent with reusable email templates.",icon:"▧",emptyTitle:"Build your message library",emptyText:"Your reusable email templates will live here, ready to use whenever you create a campaign."},
-    Audience:{kicker:"AUDIENCE MANAGEMENT",title:"Audience",description:"Keep your contact lists organized and make every message more relevant.",icon:"♧",emptyTitle:"Get to know your audience",emptyText:"Your audience lists and contact details will be organized here."},
-    Analytics:{kicker:"CAMPAIGN INSIGHTS",title:"Analytics",description:"Understand delivery, engagement, and the results of your campaigns.",icon:"↗",emptyTitle:"Your insights will appear here",emptyText:"As campaigns run and activity is recorded, your performance insights will build here."},
-    Settings:{kicker:"PREFERENCES",title:"Settings",description:"Manage your workspace preferences and delivery configuration.",icon:"⚙",emptyTitle:"Everything in one place",emptyText:"Workspace preferences and delivery settings are organized in this section."}
-  };
-  const page = pages[view];
-  const navItems = [
-    ["Overview","▦"],["Campaigns","◉"],["Templates","▧"],["Audience","♧"],["Analytics","▤"]
-  ];
-  return <main className="app preview-app">
-    <aside className="sidebar preview-sidebar">
-      <button type="button" className="brand preview-brand preview-brand-button" onClick={onBackHome} aria-label="Back to home"><i>✳</i> orbit<span>.campaigns</span></button>
-      <small className="label preview-nav-label">YOUR WORKSPACE</small>
-      <nav aria-label="Main navigation">
-        {navItems.map(([item,icon])=><button key={item} className={view===item?"active":""} aria-label={item} title={item} onClick={()=>setView(item)}><span className="nav-icon" aria-hidden="true">{icon}</span><span className="nav-label">{item}</span></button>)}
-      </nav>
-      <small className="label manage">PREFERENCES</small>
-      <nav aria-label="Preferences">
-        <button className={view==="Settings"?"active":""} aria-label="Settings" title="Settings" onClick={()=>setView("Settings")}><span className="nav-icon" aria-hidden="true">⚙</span><span className="nav-label">Settings</span></button>
-      </nav>
-      <div className="side-bottom preview-side-bottom">
-        <div className="preview-side-note"><span className="preview-side-note-icon">✦</span><div><b>Thoughtful campaigns.</b><small>From first draft to meaningful results.</small></div></div>
-        <div className="user preview-user"><b>O</b><span>Account<small>Campaign manager</small></span></div>
-      </div>
-    </aside>
-    <section className="main preview-main">
-      <header className="preview-topbar">
-        <div className="preview-breadcrumb"><span>Orbit Campaigns</span><i>›</i><b>{view==="Overview"?"Overview":view}</b></div>
-        <div className="preview-topbar-right"><span className="preview-topbar-caption">Campaign management</span><span className="preview-topbar-avatar" aria-label="Account">O</span></div>
-      </header>
-      {view==="Overview" ? <div className="content preview-content">
-        <div className="preview-page-head">
-          <div><div className="preview-eyebrow"><span></span> YOUR MARKETING OVERVIEW</div><h1>Make every campaign count.</h1><p>Plan your next message, bring your audience together, and keep your marketing moving.</p></div>
-          <button className="primary preview-cta" onClick={()=>setView("Campaigns")}><span>＋</span> Create campaign</button>
-        </div>
-        <section className="preview-hero" aria-label="Campaign planning introduction">
-          <div className="preview-hero-copy">
-            <span className="preview-hero-tag">A BETTER WAY TO CONNECT</span>
-            <h2>Great marketing starts with a clear plan.</h2>
-            <p>Bring campaigns, content, and audience management into one calm, organized workspace.</p>
-            <button className="preview-hero-button" onClick={()=>setView("Audience")}>Organize your audience <span>→</span></button>
-          </div>
-          <div className="preview-hero-visual" aria-hidden="true">
-            <div className="preview-mail-card">
-              <div className="preview-mail-top"><span><i></i><i></i><i></i></span><small>CAMPAIGN DESIGN</small><b>✳</b></div>
-              <div className="preview-mail-spark">✦</div>
-              <div className="preview-mail-heading">A message worth opening.</div>
-              <div className="preview-mail-line long"></div><div className="preview-mail-line"></div><div className="preview-mail-line short"></div>
-              <div className="preview-mail-button">Your next big idea</div>
-              <div className="preview-mail-footer"><span>Personalized content</span><span>→</span></div>
-            </div>
-            <div className="preview-float-chip preview-chip-top"><span>✦</span> Thoughtfully designed</div>
-            <div className="preview-float-chip preview-chip-bottom"><span>✓</span> Ready when you are</div>
-          </div>
-        </section>
-        <div className="preview-section-heading"><div><h2>Your overview</h2><p>A quick look at the essentials.</p></div><span className="preview-muted-badge">Overview</span></div>
-        <div className="preview-metrics">
-          <article className="preview-metric"><div className="preview-metric-top"><span>Total audience</span><i className="tone-purple">♧</i></div><strong>—</strong><small>Contacts across your lists</small></article>
-          <article className="preview-metric"><div className="preview-metric-top"><span>Active campaigns</span><i className="tone-blue">◉</i></div><strong>—</strong><small>Campaigns in progress</small></article>
-          <article className="preview-metric"><div className="preview-metric-top"><span>Scheduled</span><i className="tone-amber">◷</i></div><strong>—</strong><small>Messages planned ahead</small></article>
-          <article className="preview-metric"><div className="preview-metric-top"><span>Sent deliveries</span><i className="tone-green">↗</i></div><strong>—</strong><small>Confirmed email sends</small></article>
-        </div>
-        <div className="preview-lower-grid">
-          <article className="preview-surface preview-activity">
-            <div className="preview-card-heading"><div><h2>Campaign activity</h2><p>Your latest campaigns and updates.</p></div><button className="preview-text-action" onClick={()=>setView("Campaigns")}>View campaigns <span>→</span></button></div>
-            <div className="preview-empty-activity"><div className="preview-empty-graphic"><span>✳</span><i></i><i></i><i></i></div><h3>Your campaign story starts here</h3><p>Create a campaign to start building your activity history and performance insights.</p><button className="secondary preview-secondary" onClick={()=>setView("Campaigns")}>Explore campaigns <span>→</span></button></div>
-          </article>
-          <article className="preview-surface preview-quick-actions">
-            <div className="preview-card-heading"><div><h2>Make a little progress</h2><p>Pick up where you want to begin.</p></div></div>
-            <button className="preview-action-row" onClick={()=>setView("Audience")}><span className="preview-action-icon tone-purple">♧</span><span><b>Organize your audience</b><small>Keep your contact lists tidy</small></span><i>→</i></button>
-            <button className="preview-action-row" onClick={()=>setView("Templates")}><span className="preview-action-icon tone-amber">▧</span><span><b>Build a template library</b><small>Reuse your best content</small></span><i>→</i></button>
-            <button className="preview-action-row" onClick={()=>setView("Analytics")}><span className="preview-action-icon tone-blue">↗</span><span><b>Explore your insights</b><small>Understand campaign results</small></span><i>→</i></button>
-            <div className="preview-quick-footer"><span>✦</span> Small steps make stronger campaigns.</div>
-          </article>
-        </div>
-      </div> : <div className="content preview-content preview-inner-page">
-        <div className="preview-page-head">
-          <div><div className="preview-eyebrow"><span></span> {page.kicker}</div><h1>{page.title}</h1><p>{page.description}</p></div>
-          <button className="secondary preview-cta preview-back-button" onClick={()=>setView("Overview")}>← Back to overview</button>
-        </div>
-        <section className="preview-empty-page">
-          <div className="preview-empty-page-art"><div className="preview-empty-icon">{page.icon}</div><span></span><span></span><span></span></div>
-          <h2>{page.emptyTitle}</h2><p>{page.emptyText}</p>
-          <button className="primary" onClick={()=>setView(view==="Campaigns"?"Audience":view==="Audience"?"Templates":view==="Templates"?"Campaigns":"Overview")}>{view==="Campaigns"?"Set up an audience":view==="Audience"?"Explore templates":view==="Templates"?"Explore campaigns":"Back to overview"} <span>→</span></button>
-        </section>
-        <div className="preview-feature-strip"><div><i>✦</i><span><b>Everything organized</b><small>A focused place for every part of your marketing.</small></span></div><div><i>↗</i><span><b>Built for clarity</b><small>Find what matters without the clutter.</small></span></div><div><i>✓</i><span><b>Ready to grow</b><small>A consistent workflow from draft to delivery.</small></span></div></div>
-      </div>}
-    </section>
-  </main>;
-}
 function Stat({title,value,note,icon}){return <article className="stat"><div>{title}<i>{icon}</i></div><strong>{value}</strong><small>{note}</small></article>}
 function Status({value}){return <span className={"status "+value}>{value}</span>}
 function Overview({setView,setError}){const[summary,setSummary]=useState(null),[campaigns,setCampaigns]=useState([]),[busy,setBusy]=useState(true);useEffect(()=>{Promise.all([api("/api/v1/dashboard/summary"),api("/api/v1/campaigns")]).then(([s,c])=>{setSummary(s);setCampaigns(c)}).catch(e=>setError(e.message)).finally(()=>setBusy(false))},[]);const s=summary||{audience_contacts:0,active_campaigns:0,scheduled_campaigns:0,sent_deliveries:0};return <div className="content"><div className="welcome"><div><div className="eyebrow">CAMPAIGN WORKSPACE</div><h1>Good morning <em>✳</em></h1><p>Here's what's happening with your campaigns today.</p></div><button className="primary" onClick={()=>setView("Campaigns")}>＋ Create campaign</button></div><div className="stats"><Stat title="Total audience" value={s.audience_contacts} note="Contacts across your lists" icon="♧"/><Stat title="Active campaigns" value={s.active_campaigns} note="Scheduled or queued" icon="◉"/><Stat title="Scheduled" value={s.scheduled_campaigns} note="Upcoming campaigns" icon="◷"/><Stat title="Sent deliveries" value={s.sent_deliveries} note="SMTP-confirmed sends" icon="↗"/></div><div className="heading"><div><h2>Campaign activity</h2><p>Performance from stored delivery and tracking data.</p></div><button className="period" onClick={()=>setView("Analytics")}>View analytics →</button></div><div className="chart empty-chart"><div className="chart-icon">↗</div><b>{s.sent_deliveries?"Your campaign activity":"Your campaign story starts here"}</b><p>{s.sent_deliveries?"Open Analytics to review delivery and engagement totals.":"Create an audience and campaign to begin collecting real results."}</p><button className="secondary" onClick={()=>setView("Audience")}>Set up your audience</button></div><div className="lower"><article><div className="heading tight"><div><h2>Recent campaigns</h2><p>Your latest drafts and sends.</p></div><button className="link-button small" onClick={()=>setView("Campaigns")}>View all →</button></div>{busy?<div className="empty">Loading campaigns…</div>:campaigns.slice(0,3).map(c=><div className="list-row" key={c.id}><div><b>{c.name}</b><small>{c.audience_name||"Audience"} · {c.status}</small></div><Status value={c.status}/></div>)}{!busy&&!campaigns.length&&<div className="empty">No campaigns yet.</div>}</article><article><h2>Quick start</h2><p>Get your workspace ready.</p>{[[1,"Set up your audience","Create a list and add contacts.","Audience"],[2,"Create a campaign","Write a message and choose recipients.","Campaigns"],[3,"Review your results","Open Analytics after real deliveries.","Analytics"]].map(x=><button className="quick" key={x[0]} onClick={()=>setView(x[3])}><i>{x[0]}</i><b>{x[1]}<small>{x[2]}</small></b><span>→</span></button>)}</article></div></div>}

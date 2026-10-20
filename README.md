@@ -88,15 +88,15 @@ For cookie-based login to work, configure the backend's `FRONTEND_ORIGIN` to the
 
 ### Deploy the frontend with your existing Vercel project
 
-The repository contains a `vercel.json` for the Vite build and SPA fallback. You do not need to install the Vercel CLI for the Git-connected dashboard workflow.
+The public site and authentication pages are served by Vercel. Browser requests to `/api/v1/*` are forwarded through the server-side `api/[...path].js` function. This keeps authentication cookies on the Vercel site origin; do **not** put backend credentials or server-side secrets in `VITE_*` variables.
 
-1. In your existing Vercel dashboard, import or select this frontend repository, keep the project root at the repository root, and set the production branch to `main`. The checked-in configuration uses `npm ci` from the committed lockfile, the Vite framework preset, `npm run build:vercel`, and `dist` output. The production build fails with a clear error if VITE_API_URL is missing, non-HTTPS, or a reserved example/localhost URL. The same guard is used by Vercel and the Docker production overlay.
-2. In Project Settings → Environment Variables, add `VITE_API_URL=https://api.yourdomain.com` for Production. Replace `yourdomain.com` with a domain you own. This value is public, embedded into the frontend during build, and changing it requires a new deployment.
-3. Assign a custom HTTPS domain such as `app.yourdomain.com` to the frontend project. Configure the backend API on a sibling subdomain such as `api.yourdomain.com`; this keeps the backend's `SameSite=Strict` session cookie same-site.
-4. Deploy the backend using its API-only overlay and `Caddyfile.api-only`; the backend README contains the required DNS, TLS, database, Redis, secure cookie, CSRF-origin, and SMTP setup. Set the backend's `FRONTEND_ORIGIN` to the exact frontend custom-domain origin.
-5. Test the production Vercel domain through registration/login/logout, then send a controlled-inbox test campaign. Production API CORS/CSRF rules deliberately do not allow arbitrary Vercel preview origins to use the production session.
+1. In Vercel, select this repository and keep the project root at the repository root, the production branch at `main`, and the framework set to Vite. The checked-in configuration uses `npm ci`, `npm run build`, `dist`, and the SPA fallback.
+2. Deploy `marketing-campaign-management-backend` to a real public HTTPS API host first. In Vercel Project Settings → Environment Variables, set **`BACKEND_API_URL`** for Production to that backend's **origin only**, for example `https://api.your-real-domain.example` (no `/api/v1` path and no trailing endpoint). This is a server-side variable: do not prefix it with `VITE_`. Redeploy after setting it.
+3. In the backend's production environment, set `FRONTEND_ORIGIN=https://marketing-campaign-management-front.vercel.app` (or your verified production custom-domain origin), `COOKIE_SECURE=true`, and `COOKIE_NAME=__Host-campaign_session`. Also configure the required database, Redis, JWT secret, and SMTP values described in the backend repository README.
+4. Verify the backend's `/health` endpoint directly, then test registration, sign-in, refresh/reload of an authenticated `/app` session, logout, and one owner-scoped audience action through the Vercel domain. Do not use an unrelated backend URL: all `/api/v1/*` endpoints must belong to this campaign-management backend.
+5. Local Playwright/Docker development can continue to set `VITE_API_URL=http://localhost:8000`. For the Vercel site, leave `VITE_API_URL` unset so requests use the same-origin proxy. Keep production API access restricted to the configured frontend origin.
 
-Never put database passwords, JWT secrets, SMTP credentials, or other backend secrets into any `VITE_*` variable.
+The API proxy returns a clear HTTP 503 response when `BACKEND_API_URL` is not configured, rather than silently pretending registration succeeded or serving the SPA HTML as an API response. Until the backend has a real deployed URL, the marketing homepage and login/register screens load, but registration/login cannot succeed.
 
 ### Single-host HTTPS deployment with Caddy
 

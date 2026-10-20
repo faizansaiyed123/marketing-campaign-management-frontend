@@ -8,7 +8,7 @@ test("user can complete the audience-to-campaign frontend workflow against the A
   const email = uniqueEmail("workflow");
 
   await page.goto("/");
-  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByRole("button", { name: /Get started/ }).first().click();
   await page.getByLabel("Name").fill("E2E User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -74,7 +74,7 @@ test("user can complete the audience-to-campaign frontend workflow against the A
 test("saved templates are private and populate a new campaign", async ({ page }) => {
   const email = uniqueEmail("templates");
   await page.goto("/");
-  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByRole("button", { name: /Get started/ }).first().click();
   await page.getByLabel("Name").fill("Template User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -116,7 +116,7 @@ test("mobile workspace navigation remains visible and accessible", async ({ page
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByRole("button", { name: /Get started/ }).first().click();
   await page.getByLabel("Name").fill("Mobile Navigation User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -148,7 +148,7 @@ test("session survives reload, duplicate-contact errors are surfaced, and logout
   const email = uniqueEmail("session");
 
   await page.goto("/");
-  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByRole("button", { name: /Get started/ }).first().click();
   await page.getByLabel("Name").fill("Session User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -180,7 +180,7 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
   const email = uniqueEmail("schedule");
 
   await page.goto("/");
-  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByRole("button", { name: /Get started/ }).first().click();
   await page.getByLabel("Name").fill("Schedule User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -230,7 +230,7 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
 test("campaign report displays skipped deliveries distinctly from sent and failed", async ({ page }) => {
   const email = uniqueEmail("skipped-delivery");
   await page.goto("/");
-  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByRole("button", { name: /Get started/ }).first().click();
   await page.getByLabel("Name").fill("Skipped Delivery User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -282,7 +282,7 @@ test("campaign report displays skipped deliveries distinctly from sent and faile
 test("campaign delivery report refreshes when background processing completes", async ({ page }) => {
   const email = uniqueEmail("worker-report");
   await page.goto("/");
-  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByRole("button", { name: /Get started/ }).first().click();
   await page.getByLabel("Name").fill("Worker Report User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -330,7 +330,7 @@ test("campaign delivery report refreshes when background processing completes", 
 test("an empty completed campaign can be reused after contacts are added", async ({ page }) => {
   const email = uniqueEmail("empty-campaign");
   await page.goto("/");
-  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByRole("button", { name: /Get started/ }).first().click();
   await page.getByLabel("Name").fill("Empty Campaign User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -403,7 +403,7 @@ test("an empty completed campaign can be reused after contacts are added", async
 test("editing a partial campaign explains retry recipient behavior", async ({ page }) => {
   const email = uniqueEmail("partial-retry");
   await page.goto("/");
-  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByRole("button", { name: /Get started/ }).first().click();
   await page.getByLabel("Name").fill("Partial Retry User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");

@@ -21,7 +21,7 @@ jobs:
       - name: Check for high and critical npm advisories
         run: npm audit --audit-level=high
       - name: Validate Vercel SPA configuration
-        run: node -e 'const c = require("./vercel.json"); if (c.framework !== "vite" || c.installCommand !== "npm ci" || c.buildCommand !== "npm run build:vercel" || c.outputDirectory !== "dist" || !c.rewrites?.some(r => r.source === "/(.*)" && r.destination === "/index.html")) process.exit(1)'
+        run: node -e 'const c = require("./vercel.json"); if (c.framework !== "vite" || c.installCommand !== "npm ci" || c.buildCommand !== "npm run build" || c.outputDirectory !== "dist" || !c.rewrites?.some(r => r.source === "/(.*)" && r.destination === "/index.html")) process.exit(1)'
       - name: Ensure production build refuses missing or unsafe API URLs
         run: |
           expect_failure() {
@@ -44,10 +44,8 @@ jobs:
           expect_failure "an HTTP localhost API URL" "VITE_API_URL must be an HTTPS origin" /tmp/insecure-api-url.log env VITE_API_URL=http://localhost:8000 npm run build:production
           expect_failure "a reserved example API domain" "real public API hostname" /tmp/example-api-url.log env VITE_API_URL=https://api.example.com npm run build:production
           expect_failure "a copied yourdomain.com API placeholder" "real public API hostname" /tmp/yourdomain-api-url.log env VITE_API_URL=https://api.yourdomain.com npm run build:production
-      - name: Build Vercel production bundle
-        env:
-          VITE_API_URL: https://api.campaign-ci.com
-        run: npm run build:vercel
+      - name: Build Vercel production bundle with same-origin API proxy
+        run: npm run build
       - name: Validate production Compose overlay
         env:
           VITE_API_URL: https://api.campaign-ci.com
