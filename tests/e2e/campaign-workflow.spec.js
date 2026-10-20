@@ -428,6 +428,10 @@ test("editing a partial campaign explains retry recipient behavior", async ({ pa
 
   let markPartial = true;
   await page.route("**/api/v1/campaigns", async route => {
+    if (route.request().method() !== "GET") {
+      await route.continue();
+      return;
+    }
     const response = await route.fetch();
     const campaigns = await response.json();
     if (markPartial) {
