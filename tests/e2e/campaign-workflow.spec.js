@@ -227,6 +227,36 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
 });
 
 
+test("report exposes skipped deliveries when a contact unsubscribes before sending", async ({ page }) => {
+  const email = uniqueEmail("skipped-delivery");
+  await page.goto("/");
+  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByLabel("Name").fill("Skipped Delivery User");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("strong-password-123");
+  await page.getByRole("button", { name: "Create workspace" }).click();
+  await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
+
+  const nav = page.locator(".sidebar nav").first();
+  await nav.getByRole("button", { name: "Audience", exact: true }).click();
+  const audienceName = "Skip Before Send " + Date.now();
+  await page.getByPlaceholder("New audience name").fill(audienceName);
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("button", { name: new RegExp(audienceName) })).toBeVisible();
+  await page.getByPlaceholder("Email").fill("unsubscribe-before-send@example.com");
+  await page.getByRole("button", { name: "Add contact" }).click();
+  await expect(page.getByText("unsubscribe-before-send@example.com")).toBeVisible();
+
+  await nav.getByRole("button", { name: "Campaigns", exact: true }).click();
+  await page.getByRole("button", { name: "New campaign" }).click();
+  await page.getByLabel("Campaign name").fill("Skip Unsubscribed Recipient");
+  await page.getByLabel("Subject").fill("Transactional test");
+  await page.getByLabel("Message HTML").fill("<p>Hello</p>");
+  await page.getByRole("button", { name: "Save campaign" }).click();
+  const row = page.locator(".campaign-row").filter({ hasText: "Skip Unsubscribed Recipient" });
+  await row.getByRole("button", { name: "Execute" }).click();
+  await expect(page.locator(".report-card")).toContainText("Latest run: queued");
+});
 test("campaign delivery report refreshes when background processing completes", async ({ page }) => {
   const email = uniqueEmail("worker-report");
   await page.goto("/");
