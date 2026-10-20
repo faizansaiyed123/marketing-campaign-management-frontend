@@ -398,3 +398,50 @@ test("an empty completed campaign can be reused after contacts are added", async
   await expect(page.locator(".report-card")).toContainText("Latest run: sent");
   await expect(page.locator(".report-card")).toContainText("Sent");
 });
+
+
+test("editing a partial campaign explains retry recipient behavior", async ({ page }) => {
+  const email = uniqueEmail("partial-retry");
+  await page.goto("/");
+  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByLabel("Name").fill("Partial Retry User");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("strong-password-123");
+  await page.getByRole("button", { name: "Create workspace" }).click();
+  await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
+
+  const nav = page.locator(".sidebar nav").first();
+  await nav.getByRole("button", { name: "Audience", exact: true }).click();
+  const audienceName = "Partial Retry Audience " + Date.now();
+  await page.getByPlaceholder("New audience name").fill(audienceName);
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("button", { name: new RegExp(audienceName) })).toBeVisible();
+  await page.getByPlaceholder("Email").fill("partial-retry-target@example.com");
+  await page.getByRole("button", { name: "Add contact" }).click();
+  await expect(page.getByText("partial-retry-target@example.com")).toBeVisible();
+
+  await nav.getByRole("button", { name: "Campaigns", exact: true }).click();
+  await page.getByRole("button", { name: "New campaign" }).click();
+  await page.getByLabel("Campaign name").fill("Partial Retry Campaign");
+  await page.getByLabel("Subject").fill("Original subject");
+  await page.getByLabel("Message HTML").fill("<p>Original body</p>");
+
+  let markPartial = true;
+  await page.route("**/api/v1/campaigns", async route => {
+    const response = await route.fetch();
+    const campaigns = await response.json();
+    if (markPartial) {
+      for (const campaign of campaigns) {
+        if (campaign.name === "Partial Retry Campaign") campaign.status = "partial";
+      }
+    }
+    await route.fulfill({ response, json: campaigns });
+  });
+
+  await page.getByRole("button", { name: "Save campaign" }).click();
+  const row = page.locator(".campaign-row").filter({ hasText: "Partial Retry Campaign" });
+  await expect(row).toContainText("partial");
+  await row.getByRole("button", { name: "Edit" }).click();
+  await expect(page.locator(".campaign-retry-note")).toContainText("Retry sends only failed recipients");
+  await expect(page.locator(".campaign-retry-note")).toContainText("Changes you save apply to the retry");
+});
