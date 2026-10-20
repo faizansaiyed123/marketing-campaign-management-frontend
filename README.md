@@ -120,6 +120,10 @@ docker compose -f docker-compose.yml -f docker-compose.production.yml up --build
 
 The frontend container is published on loopback only; public HTTPS traffic should arrive through Caddy on ports 80/443. Configure your host firewall to expose only the required public web ports and SSH administration. Keep both domains under the same registrable domain for the session cookie to work reliably. The example domains are placeholders, not deployed addresses.
 
+## Dependency security
+
+Frontend dependencies are installed from the committed npm lockfile using `npm ci`. The pinned toolchain includes Vite 6.4.4 and source-map-js 1.2.2; Vite 6.4.4 addresses the published Vite 6.4.3-and-earlier issues [GHSA-rq7h-c2jc-7f22](https://github.com/vitejs/vite/security/advisories/GHSA-rq7h-c2jc-7f22) and [GHSA-9jrq-w75r-8gcw](https://github.com/vitejs/vite/security/advisories/GHSA-9jrq-w75r-8gcw). CI now runs `npm audit --audit-level=high` on every main/development push and pull request, in addition to the build and browser integration tests.
+
 ## Implemented
 
 - Registration and login states backed by the real API.
