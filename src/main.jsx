@@ -160,8 +160,8 @@ function Campaigns({setError}) {
     {(!editorOpen || report) && <div className="panel table-panel">
       {loading ? <div className="empty">Loading campaigns…</div> : campaigns.length ? campaigns.map(c => {
         const retryable = c.status === "failed" || c.status === "partial";
-        const editable = c.status === "draft" || c.status === "scheduled" || c.status === "completed";
-        const executable = editable || retryable;
+        const editable = ["draft", "scheduled", "failed", "partial", "completed"].includes(c.status);
+        const executable = editable;
         return <div className="campaign-row" key={c.id}>
           <div><b>{c.name}</b><small>{c.subject} · {c.audience_name}</small></div>
           <Status value={c.status}/>
