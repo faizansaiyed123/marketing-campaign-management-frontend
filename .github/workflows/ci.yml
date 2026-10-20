@@ -22,21 +22,25 @@ jobs:
         run: node -e 'const c = require("./vercel.json"); if (c.framework !== "vite" || c.installCommand !== "npm ci" || c.buildCommand !== "npm run build:vercel" || c.outputDirectory !== "dist" || !c.rewrites?.some(r => r.source === "/(.*)" && r.destination === "/index.html")) process.exit(1)'
       - name: Ensure production build refuses missing or unsafe API URLs
         run: |
-          if npm run build:production >/tmp/missing-api-url.log 2>&1; then
-            echo "Production build unexpectedly accepted a missing VITE_API_URL." >&2
-            exit 1
-          fi
-          grep -q "set VITE_API_URL" /tmp/missing-api-url.log
-          if VITE_API_URL=http://localhost:8000 npm run build:production >/tmp/insecure-api-url.log 2>&1; then
-            echo "Production build unexpectedly accepted an insecure localhost API URL." >&2
-            exit 1
-          fi
-          grep -q "absolute HTTPS API origin" /tmp/insecure-api-url.log
-          if VITE_API_URL=https://api.example.com npm run build:production >/tmp/example-api-url.log 2>&1; then
-            echo "Production build unexpectedly accepted a reserved example API domain." >&2
-            exit 1
-          fi
-          grep -q "real public API hostname" /tmp/example-api-url.log
+          expect_failure() {
+            local label="$1"
+            local expected="$2"
+            local logfile="$3"
+            shift 3
+            if "$@" >"$logfile" 2>&1; then
+              echo "Production build unexpectedly accepted: $label" >&2
+              cat "$logfile" >&2
+              exit 1
+            fi
+            if ! grep -Fq "$expected" "$logfile"; then
+              echo "Production build rejected $label, but not for the expected reason: $expected" >&2
+              cat "$logfile" >&2
+              exit 1
+            fi
+          }
+          expect_failure "a missing API URL" "set VITE_API_URL" /tmp/missing-api-url.log npm run build:production
+          expect_failure "an HTTP localhost API URL" "absolute HTTPS API origin" /tmp/insecure-api-url.log env VITE_API_URL=http://localhost:8000 npm run build:production
+          expect_failure "a reserved example API domain" "real public API hostname" /tmp/example-api-url.log env VITE_API_URL=https://api.example.com npm run build:production
       - name: Build Vercel production bundle
         env:
           VITE_API_URL: https://api.campaign-ci.com
