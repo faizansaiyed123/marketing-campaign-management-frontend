@@ -113,7 +113,7 @@ The frontend container is published on loopback only; public HTTPS traffic shoul
 - Registration and login states backed by the real API.
 - Workspace dashboard populated from persisted counts.
 - Audience and contact management, including subscribe/unsubscribe state.
-- Campaign create, edit, schedule, execute and report workflows, with reusable saved templates.
+- Campaign create, edit and scheduling workflows; execution queues durable work, and the report panel automatically refreshes while the backend worker processes delivery status. Reusable saved templates are supported.
 - Delivery and engagement analytics from backend data.
 - Loading, empty and error states.
 - Responsive workspace layout for desktop and mobile.
