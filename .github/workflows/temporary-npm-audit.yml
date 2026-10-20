@@ -1,0 +1,43 @@
+name: Temporary npm audit inspection
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/temporary-npm-audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci
+      - name: Summarize current dependency advisories
+        run: |
+          npm audit --json > /tmp/npm-audit.json || true
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const audit = JSON.parse(fs.readFileSync("/tmp/npm-audit.json", "utf8"));
+            console.log(JSON.stringify({
+              totals: audit.metadata?.vulnerabilities,
+              advisories: Object.entries(audit.vulnerabilities || {}).map(([name, item]) => ({
+                name,
+                severity: item.severity,
+                isDirect: item.isDirect,
+                range: item.range,
+                fixAvailable: item.fixAvailable,
+                via: item.via.map(v => typeof v === "string" ? v : ({
+                  title: v.title,
+                  url: v.url,
+                  range: v.range,
+                  severity: v.severity
+                }))
+              }))
+            }, null, 2));
+          '
