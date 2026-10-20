@@ -1,0 +1,22 @@
+name: Temporary npm metadata lookup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/temporary-npm-metadata.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  lookup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Print official Vite 6.4.4 package metadata
+        run: |
+          npm view vite@6.4.4 dist.integrity dist.tarball engines --json
