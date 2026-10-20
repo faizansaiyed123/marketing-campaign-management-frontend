@@ -31,15 +31,17 @@ if (
 const hostname = apiUrl.hostname.toLowerCase().replace(/\.$/, "");
 const reservedHosts = new Set([
   "localhost",
-  "example.com",
-  "example.org",
-  "example.net",
   "127.0.0.1",
   "[::1]",
 ]);
+const exampleDomains = ["example.com", "example.org", "example.net"];
+const usesReservedExampleDomain = exampleDomains.some(
+  domain => hostname === domain || hostname.endsWith("." + domain)
+);
 if (
   reservedHosts.has(hostname) ||
   hostname.startsWith("127.") ||
+  usesReservedExampleDomain ||
   [".example", ".invalid", ".test", ".localhost"].some(suffix => hostname.endsWith(suffix))
 ) {
   fail("VITE_API_URL must use the real public API hostname, not a localhost or example placeholder.");

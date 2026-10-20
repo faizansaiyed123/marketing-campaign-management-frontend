@@ -30,6 +30,10 @@ jobs:
             echo "Vercel build unexpectedly accepted an insecure localhost API URL." >&2
             exit 1
           fi
+          if VITE_API_URL=https://api.example.com npm run build:vercel >/dev/null 2>&1; then
+            echo "Vercel build unexpectedly accepted a reserved example API domain." >&2
+            exit 1
+          fi
       - name: Build Vercel production bundle
         env:
           VITE_API_URL: https://api.campaign-ci.com
