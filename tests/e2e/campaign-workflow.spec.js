@@ -371,8 +371,30 @@ test("an empty completed campaign can be reused after contacts are added", async
   await expect(reusableRow).toContainText("completed");
   await expect(reusableRow.getByRole("button", { name: "Edit" })).toBeVisible();
   await expect(reusableRow.getByRole("button", { name: "Execute" })).toBeVisible();
+  // The integration backend has no live SMTP account. Simulate the worker
+  // finishing only after the user manually refreshes this still-queued report.
+  let manualRefreshRequested = false;
+  await page.route("**/api/v1/campaigns/*/report", async route => {
+    const response = await route.fetch();
+    const report = await response.json();
+    if (manualRefreshRequested) {
+      report.latest_run_status = "sent";
+      report.campaign.status = "sent";
+      report.summary.queued = 0;
+      report.summary.sent = 1;
+      report.summary.failed = 0;
+      report.summary.skipped = 0;
+      report.summary.total = 1;
+    }
+    await route.fulfill({ response, json: report });
+  });
+
   await reusableRow.getByRole("button", { name: "Execute" }).click();
   await expect(page.locator(".report-card")).toContainText("Latest run: queued");
   await expect(page.locator(".report-card")).toContainText("Queued");
   await expect(page.locator(".report-card")).toContainText("Totals include delivery attempts across runs, including retries");
+  manualRefreshRequested = true;
+  await page.locator(".report-card").getByRole("button", { name: "Refresh report" }).click();
+  await expect(page.locator(".report-card")).toContainText("Latest run: sent");
+  await expect(page.locator(".report-card")).toContainText("Sent");
 });
