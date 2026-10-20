@@ -11,10 +11,9 @@ The frontend code and production configuration are committed on `main`.
 ## Repositories and revisions
 - Frontend: https://github.com/faizansaiyed123/marketing-campaign-management-frontend
 - Backend: https://github.com/faizansaiyed123/marketing-campaign-management-backend
-- Frontend application/config revision before this progress-file update: `31ed78b4488acdd1bb6426a7c8267d1bda4e43e9`.
-- Last known fully successful frontend CI before the backend schema work: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39403014152
-- The next frontend CI must run integration against backend main after the migration revision fix; the immediate preceding frontend run failed because the backend Alembic revision identifier exceeded PostgreSQL's 32-character limit.
-- That backend issue is fixed by changing the revision to `0005_run_content_snapshot`, and the backend's complete CI run now passes: https://github.com/faizansaiyed123/marketing-campaign-management-backend/actions/runs/39404581186.
+- Verified frontend code/configuration revision: `31ed78b4488acdd1bb6426a7c8267d1bda4e43e9`.
+- Full frontend production-build and integration CI passed on repository head `9f1c1a14033e67df48bbcaf0aa960d0954a8448b`: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39404998288.
+- The integration run used the corrected backend migration revision `0005_run_content_snapshot`; it passed migration startup, backend API setup and browser integration.
 
 ## Application functionality
 - React + Vite supports registration/login/session/logout, dashboard, audiences/contacts, subscriptions, campaign authoring/scheduling/execution/reports, templates, analytics, responsive navigation and error states.
@@ -31,7 +30,7 @@ The frontend code and production configuration are committed on `main`.
 
 ## CI coverage
 - `npm ci`, Vercel config validation, rejected URL cases (missing, HTTP localhost and reserved examples), valid HTTPS production build, standard Vite build, Docker/container smoke checks, Compose validation, and Playwright integration against backend main.
-- The current code previously had a passing Vercel production build/container job, while the full integration run was blocked before API tests by the backend migration identifier. The migration has been fixed and this documentation push triggers a fresh integration run against it.
+- Latest verification on repository head `9f1c1a14033e67df48bbcaf0aa960d0954a8448b` passed both the production build/container job and the full integration job after the backend migration fix.
 
 ## Branch review
 Previously compared main, development and chore/startup-docker-support recursively. At the review checkpoint, non-main branches were behind main with zero commits ahead; no unrelated branches were merged wholesale.
