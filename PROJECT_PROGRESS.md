@@ -1,45 +1,40 @@
 # Project Progress — Marketing Campaign Management Frontend
 
 ## Status — October 20, 2026
-The frontend application, production Docker image, Vercel deployment configuration, and browser integration are committed on main.
+The frontend application, deployment configuration, and browser integration are committed on main.
 - Campaign execution treats HTTP 202 as durable queue acceptance; it does not imply SMTP has sent mail.
 - The report panel refreshes delivery status while the backend worker processes queued campaigns.
-- The campaign editor lists supported personalized fields: {{first_name}}, {{last_name}}, {{full_name}}, and {{email}}.
-- Empty-audience campaigns can be executed again after contacts are added; failed/partial campaigns can be edited before retry.
-- Both the Vercel build and self-hosted Docker production build fail with a clear message if VITE_API_URL is missing, non-HTTPS, localhost, or a reserved example placeholder.
-- The production build configuration and its failure cases pass CI alongside Docker/container and Playwright tests.
-- No Vercel connector or CLI installation was performed.
+- The editor documents the backend-supported merge fields {{first_name}}, {{last_name}}, {{full_name}}, and {{email}}.
+- When a contact unsubscribes after a campaign is queued but before the worker sends it, the backend skips that email and the report shows Skipped separately from Sent and Failed.
+- Empty-audience campaigns can be run again after contacts are added; failed/partial campaigns can be edited before retry.
+- The Vercel production build and Docker production build reject missing, non-HTTPS, localhost, or reserved example API URLs with clear errors.
+- Current frontend production/container and Playwright integration checks passed. No CLI/connector installation was performed.
 
 ## Repositories and verification
 - Frontend: https://github.com/faizansaiyed123/marketing-campaign-management-frontend
 - Backend: https://github.com/faizansaiyed123/marketing-campaign-management-backend
-- Current frontend application/configuration revision before this progress update: e6f710ec3e923986de9305393e33c70eaa588299
-- Last passing CI before this production Docker URL guard: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39378962904
-- Backend API-only/full-stack production deployment configuration is in the backend main branch and its CI workflow validates both overlays.
-- Frontend CI checks npm ci, Vercel SPA configuration, rejection of missing/unsafe API URLs, valid HTTPS Vercel build, Docker production build rejection of localhost, normal Vite build, Compose configuration, production Docker image smoke test/security headers, and Playwright integration against backend main.
+- Frontend application/E2E revision verified by CI before this docs update: `6d9c0f459da5ab2978eea48d2f5446fc52e7781a`.
+- Passing frontend build + integration CI: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39386307829
+- Backend pre-send unsubscribe, skipped-count schema and API revision: 99358fc3b282354ac586f536d458134ad0e30eff
+- Passing backend CI: https://github.com/faizansaiyed123/marketing-campaign-management-backend/actions/runs/39386023991
+- Frontend CI validates npm lockfile install, Vercel config, API URL guard behavior, HTTPS production build, Docker production build including rejecting unsafe API URLs, Nginx smoke/security headers, and browser tests against backend main.
 
-## Application functionality
-- React + Vite workspace supports account registration/login/session/logout, dashboard, audiences/contacts, subscription changes, campaign create/edit/schedule/execute/report, saved templates, analytics, responsive navigation, and error/empty states.
-- The API client normalizes trailing slashes in VITE_API_URL and uses credentialed fetch for the backend HttpOnly cookie.
-- The Campaigns report panel polls the durable report endpoint while the latest run has queued deliveries, displays updated sent/failed state, and caps polling if no worker processes the queue.
-- Campaign subjects and HTML support {{first_name}}, {{last_name}}, {{full_name}}, and {{email}}. The backend substitutes contact values safely and escapes HTML.
-- Saved templates remain private to each account through backend owner-scoped APIs.
+## Application workflows
+- Account registration/login/session/logout, dashboard, audience/contact management and subscription changes, campaign create/edit/schedule/execute/report, reusable owner-scoped templates, analytics, responsive navigation, loading/error/empty states.
+- Frontend API client normalizes trailing slashes and sends credentialed requests for the backend's HttpOnly cookie.
+- Campaign report polling refreshes queued runs and caps polling instead of making indefinite requests when SMTP/worker is unavailable.
+- Delivery summaries show campaign-wide attempts (including retries) with sent, failed, queued, and skipped counts; latest_run_status separately names the most recent run state.
+- The E2E suite covers campaign send/retry UI, template privacy/use, sessions, schedule edits, report refresh, skipped-delivery display, and recovery after an initially empty audience.
 
-## Deployment options
-1. Existing Vercel project: repository root, production branch main, Vite framework, build command npm run build:vercel, dist output, and Production variable VITE_API_URL pointing at the public HTTPS API origin. The checked-in vercel.json adds SPA fallback routing and the build script prevents placeholder API URLs.
-2. Fully self-hosted alternative: Node build stage, unprivileged Nginx static server, and shared Caddy HTTPS proxy through Docker network campaign_proxy.
-- For cookie-based authentication, the frontend and API must use HTTPS custom subdomains under the same registrable domain, for example app.yourdomain.com and api.yourdomain.com. Backend FRONTEND_ORIGIN must match the frontend's exact origin.
-- VITE_API_URL is public and embedded at build time. Never put credentials, JWT secrets, SMTP settings or any backend secret into VITE_* variables.
-- Vercel preview origins are intentionally not trusted by production API CORS/CSRF settings. Use the production custom domain for end-to-end authentication checks.
-- The backend README documents Caddyfile.api-only and docker-compose.api-production.yml for a VPS-hosted API with a Vercel frontend. Do not run the API-only overlay and full two-domain Caddy overlay on the same host simultaneously because both publish ports 80/443.
-
-## CI verification
-- Passing CI for revision c3974c30c80b164091c160218a0c42d418a13f8c: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39378747582
-- Browser tests cover audience/contact flows, campaign execution and queued-to-completed report refresh, reusable templates, session behavior, scheduled campaigns, responsive navigation, empty-audience recovery, and error states.
-- The Vercel build guard has explicit CI cases for missing API URL, insecure localhost, reserved example subdomain, and a valid HTTPS origin.
+## Deployment
+1. Existing Vercel project: connect this frontend repo with production branch main, keep project root at repository root, and use the checked-in `vercel.json`. Set Production `VITE_API_URL` to the real public HTTPS API origin; the guarded build fails before emitting assets if it is missing or unsafe.
+2. Self-hosted alternative: Node build stage + unprivileged Nginx, behind the backend repository's Caddy proxy.
+3. For session-cookie behavior, frontend and API need HTTPS custom subdomains under the same registrable domain. Backend `FRONTEND_ORIGIN` must exactly match the frontend origin.
+4. The backend's `docker-compose.api-production.yml` + `Caddyfile.api-only` are for API-on-VPS with Vercel frontend; the full `docker-compose.production.yml` serves both frontend and API via Caddy. Do not run both public Caddy overlays on the same server.
+5. Never store backend secrets in `VITE_*` frontend build variables. Vercel preview domains are not allowed by the production API's exact-origin CORS/CSRF rules.
 
 ## Branch review
-Earlier recursive comparisons inspected main, development, and chore/startup-docker-support. At the review checkpoint, non-main branches were behind main with zero commits ahead. No branches were merged wholesale; unrelated branch-only startup scripts remain excluded.
+Previous recursive comparisons inspected main, development, and chore/startup-docker-support. At that checkpoint the non-main branches were behind main with zero commits ahead. No unrelated branches were merged wholesale.
 
 ## Live deployment status
-The source and deployment definitions are CI-checked, but no live Vercel deployment or backend service has been accessed or verified during this work. To go live, the existing Vercel project must be linked to this repository with the Production environment variable and a custom frontend domain. The API host still needs real DNS, Linux/Docker access, production secrets, and working SMTP provider settings. A controlled-inbox send, authentication/session tests, and a PostgreSQL restore test are required after provisioning.
+Current main code and container/deployment configurations are CI-checked, but no live Vercel production domain or backend server was accessed or verified. Actual launch still requires the existing Vercel project to use the production branch, real frontend/API domains, public DNS, a configured Linux Docker host for the API, random production secrets, and working SMTP credentials/verified sender. After provisioning, verify login/session/logout, send a controlled-inbox campaign, test tracking/unsubscribe, and perform a real PostgreSQL backup/restore.

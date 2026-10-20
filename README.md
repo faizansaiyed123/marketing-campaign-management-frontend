@@ -125,7 +125,7 @@ The frontend container is published on loopback only; public HTTPS traffic shoul
 - Registration and login states backed by the real API.
 - Workspace dashboard populated from persisted counts.
 - Audience and contact management, including subscribe/unsubscribe state.
-- Campaign create, edit and scheduling; execution queues durable work and the report panel automatically refreshes as the backend worker processes it. Reusable saved templates support `{{first_name}}`, `{{last_name}}`, `{{full_name}}`, and `{{email}}` merge fields in campaign subjects and HTML. Empty-audience campaigns can be reused after contacts are added, and failed/partial campaigns remain editable before retrying.
+- Campaign create, edit and scheduling; execution queues durable work and the report panel automatically refreshes as the backend worker processes it. Reusable saved templates support `{{first_name}}`, `{{last_name}}`, `{{full_name}}`, and `{{email}}` merge fields in campaign subjects and HTML. Empty-audience campaigns can be reused after contacts are added, and failed/partial campaigns remain editable before retrying. Reports show skipped deliveries separately when a contact unsubscribes after queueing but before the worker sends.
 - Delivery and engagement analytics from backend data.
 - Loading, empty and error states.
 - Responsive workspace layout for desktop and mobile.
