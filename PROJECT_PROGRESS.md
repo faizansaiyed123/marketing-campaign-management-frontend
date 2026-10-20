@@ -1,48 +1,47 @@
 # Project Progress — Marketing Campaign Management Frontend
 
-## Objective and status
-Prepare the frontend to run with the separate backend, preserve current workflows, and reflect background campaign delivery accurately.
-- The frontend build, production container smoke test, and full Playwright integration suite passed for current code and the queued-report refresh behavior.
-- Campaign execute returns a queued report, and the Campaigns page now refreshes the report while backend worker processing is active. Polling is capped, so a development instance without SMTP does not poll indefinitely.
-- Production image, security headers, and the optional self-hosted Caddy overlay have CI coverage.
-- No live deployment has been performed. A real host, custom DNS/domains, production secrets, and valid SMTP provider credentials are external deployment inputs and have not been fabricated.
+## Status
+The frontend's core workflows and production container are committed on `main`. The latest Playwright run passed after adding a visible personalization helper and E2E assertions for the available merge fields.
+- Campaign execution treats HTTP 202 as durable queue acceptance.
+- The report panel automatically re-queries the backend report while deliveries remain queued and stops polling after worker completion or a bounded interval.
+- The campaign editor documents `{{first_name}}`, `{{last_name}}`, `{{full_name}}`, and `{{email}}`; the backend escapes contact data for HTML delivery.
+- Production image, Nginx smoke test/security headers, shared-network overlay and browser integration have CI coverage.
+- A live deployment has not been performed; actual host/DNS/secrets/SMTP settings must be supplied by the deployment operator.
 
 ## Repository and current code
 - Repository: https://github.com/faizansaiyed123/marketing-campaign-management-frontend
 - Target branch: `main`
-- Current application/test revision before this progress-file refresh: `24c63ba8e5a61c1c5e35565acf311fc05b0949ae`.
-- Latest passing CI for that revision: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39368383616
-- Earlier relevant commits include `5e3e84745b09` (fix E2E Audience selector ambiguity), `d04a6d16f828` (saved templates), `6c5322486eac` (API URL normalization/static routing), and `45c59afbf59d` (unprivileged Nginx runtime).
+- Current code revision verified by the latest frontend CI: `d5f89799217d171d9408131daf0d2f04058ef17f`.
+- CI run: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39370945582
+- Existing functionality includes registration/login/session handling, dashboard, audience/contact management, subscribe/unsubscribe UI, campaign authoring/scheduling/execution/reporting, saved templates, analytics, and responsive navigation.
+- The API client normalizes trailing slashes in `VITE_API_URL` and uses credentialed requests for the backend HttpOnly cookie.
 
-## Implemented functionality and deployment design
-- React 19 + Vite workspace includes authentication, dashboard, audiences/contacts, campaign lifecycle, reusable templates, analytics, responsive navigation, and loading/error states.
-- API routes match the separately maintained backend for auth, audiences/contacts, campaigns, dashboard, analytics, and templates.
-- API client normalizes a trailing slash in `VITE_API_URL` and uses credentialed fetch for the backend's HttpOnly session cookie.
-- Campaign execution now treats HTTP 202 as queue acknowledgment, and the report panel periodically checks the durable report endpoint while queued deliveries remain. It displays the eventual worker status and stops checking after completion or a bounded wait.
-- E2E coverage verifies the audience-to-campaign flow, template owner privacy/use, responsive nav, session/error handling, scheduled campaigns, and simulated report completion after background work.
-- Docker uses a Node build stage and `nginxinc/nginx-unprivileged` on container port 8080. The normal local Compose workflow remains available at `http://localhost:5173`.
-- The base host port is loopback-bound. The optional `docker-compose.production.yml` attaches the frontend to external Docker network `campaign_proxy` with alias `campaign-frontend`.
-- The backend Caddy overlay publishes ports 80/443, terminates HTTPS, routes the frontend/API by custom domain, and persists certificate state. The API/DB direct host ports remain loopback-bound.
-- The deployed frontend gets `VITE_API_URL=https://api.example.com` at build time. This value is public; never put backend secrets in any `VITE_*` variable.
+## Campaign delivery experience
+- Execute queues the campaign; the UI does not imply SMTP completion merely because the API acknowledged the request.
+- The Campaigns report panel polls the persistent report endpoint while the run is queued, displays queued/sent/failed state, and caps polling for development setups without SMTP.
+- Merge-field helper text identifies supported personalized fields. Saved templates remain reusable and owner-scoped by the backend.
+- E2E coverage verifies audience/contact lifecycle, campaign execution, saved-template application, responsive navigation, session/error handling, scheduled edits, personalization help text, and a queued-to-completed report update.
 
-## CI and test verification
-- Passing CI on revision `24c63ba8e5a61c1c5e35565acf311fc05b0949ae` ran both frontend build/container smoke checks and the full browser integration suite against backend `main`: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39368383616
-- The latest E2E adds coverage that a report changes from queued to a completed status when a later report request reflects background worker completion; no real SMTP account is used in CI.
-- CI uses `contents: read` and `npm ci`.
-- No local test run is claimed because a usable local clone was unavailable; validation is from GitHub Actions.
+## Build and deployment design
+- React 19 + Vite; static assets built in a Node stage and served by `nginxinc/nginx-unprivileged` on port 8080.
+- Production host-port binding is loopback-only. The optional `docker-compose.production.yml` attaches the frontend to the external Docker network `campaign_proxy` as `campaign-frontend`.
+- The backend's Caddy overlay terminates TLS on ports 80/443 and routes to the frontend and API containers. Build with `VITE_API_URL=https://<API_DOMAIN>`; this is embedded into assets at build time and is public, so never put private secrets in `VITE_*` values.
+- For cookie behavior, use frontend/API HTTPS domains under the same registrable domain and set the backend `FRONTEND_ORIGIN` to the frontend's exact HTTPS origin.
+- Both repository deployment guides use the same custom bridge network example: `172.30.240.0/24` with gateway `172.30.240.1`; the backend Caddy container uses `172.30.240.2`. Choose an unused private subnet and keep the backend's Caddy static IP and `FORWARDED_ALLOW_IPS` in sync if changing it.
+
+## CI and verification
+- Passing current code revision `d5f89799217d171d9408131daf0d2f04058ef17f`: https://github.com/faizansaiyed123/marketing-campaign-management-frontend/actions/runs/39370945582
+- CI includes locked dependency install, Vite production build, production image build/smoke test/security headers, production Compose configuration, and full Playwright integration against backend `main`.
+- CI uses `contents: read` and `npm ci`; no local build is claimed because no working local clone was available in this environment.
 
 ## Branch review
-Inspected `main`, `development`, and `chore/startup-docker-support` recursively and compared file paths/blob SHAs. At the time of review both non-main branches were behind `main` with zero commits ahead. The branch-only `run.py` that tried to start a sibling backend checkout remains intentionally excluded; no branches were merged wholesale.
+Previously inspected `main`, `development`, and `chore/startup-docker-support` recursively and compared file paths/blob SHAs. At that review point the two non-main branches were behind main with no commits ahead. No branches were merged wholesale; the branch-only script that expected a sibling backend checkout remains excluded intentionally.
 
-## Production configuration
-- The documented self-hosted setup needs Docker Engine/Compose, a persistent server disk, the shared Docker network `campaign_proxy`, public DNS records, and inbound TCP ports 80/443 for Caddy certificate issuance.
-- Use frontend and API HTTPS subdomains under the same registrable domain for the backend's `SameSite=Strict` session cookie.
-- Backend production configuration now requires strong DB/JWT/Redis values, secure cookies, HTTPS origins, and SMTP configuration. Redis-backed rate-limit state is shared by API workers. Missing/unavailable Redis fails authentication closed rather than disabling protection.
-- Production SMTP settings must point to a real provider and verified sender; example placeholders are rejected. A controlled-inbox delivery is still required to verify the actual provider credentials, DNS email authentication and deliverability after deployment.
-- No server, domains, SMTP account, or secrets are supplied by the repository; no live deployment is claimed and no secret values are stored here.
+## Production deployment status
+Source code and CI are verified; a live production URL has not been created or checked. Launching the included one-host setup requires:
+1. A Linux host with Docker Engine/Compose, persistent disk, public DNS and web ports 80/443.
+2. Actual frontend and API domains resolving to that host.
+3. Real, untracked backend production secrets and a valid SMTP provider account/verified sender.
+4. A successful controlled-inbox campaign test plus post-deployment auth, tracking and restore checks.
 
-## Next actions
-1. Deploy backend API/worker/PostgreSQL/Redis/Caddy, then the frontend overlay, on the configured host.
-2. Verify HTTPS health and frontend login/session behavior.
-3. Send a real controlled-inbox campaign and confirm queued-to-sent status, tracking, and analytics after background processing.
-4. Verify off-host database backups and record the real public URLs.
+The exact Docker commands and current backend configuration are in the two READMEs. Do not commit production `.env` files.

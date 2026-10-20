@@ -88,10 +88,10 @@ For cookie-based login to work, configure the backend's `FRONTEND_ORIGIN` to the
 
 The optional `docker-compose.production.yml` overlay connects this frontend to the backend repository's Caddy reverse proxy through a shared Docker network. It leaves the normal local command above available without requiring this network.
 
-On the server, create the shared network once:
+On the server, create the shared network once. First confirm that `172.30.240.0/24` does not conflict with a LAN, VPN, or another Docker network; if you use a different subnet, update the backend Caddy IP and `FORWARDED_ALLOW_IPS` together:
 
 ```bash
-docker network create campaign_proxy
+docker network create --driver bridge --subnet 172.30.240.0/24 --gateway 172.30.240.1 campaign_proxy
 ```
 
 In the frontend repository, create a local `.env` file (do not commit it) containing:
@@ -113,7 +113,7 @@ The frontend container is published on loopback only; public HTTPS traffic shoul
 - Registration and login states backed by the real API.
 - Workspace dashboard populated from persisted counts.
 - Audience and contact management, including subscribe/unsubscribe state.
-- Campaign create, edit and scheduling workflows; execution queues durable work, and the report panel automatically refreshes while the backend worker processes delivery status. Reusable saved templates are supported.
+- Campaign create, edit and scheduling; execution queues durable work and the report panel automatically refreshes as the backend worker processes it. Reusable saved templates support `{{first_name}}`, `{{last_name}}`, `{{full_name}}`, and `{{email}}` merge fields in campaign subjects and HTML.
 - Delivery and engagement analytics from backend data.
 - Loading, empty and error states.
 - Responsive workspace layout for desktop and mobile.
