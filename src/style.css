@@ -391,3 +391,39 @@
 @media(max-width:760px){.auth-experience{display:block;min-height:100vh}.auth-story{display:none}.auth-form-side{min-height:100vh;padding:22px 24px 18px;background:radial-gradient(ellipse at 100% 0%,#f0edff 0%,transparent 34%),#fff}.auth-form-top{font-size:10px}.auth-form-side .auth-card{max-width:430px;padding:35px 0}.auth-form-side .auth-back-button{margin-bottom:22px}.auth-mobile-brand{display:flex;align-items:center;gap:9px;margin-bottom:34px;font:800 17px Manrope,sans-serif;letter-spacing:-.5px}.auth-mobile-brand>i{width:30px;height:30px;border-radius:9px;font-size:18px}.auth-form-side .auth-card h1{font-size:32px}.auth-form-bottom{font-size:8px}}
 @media(max-width:420px){.auth-form-side{padding-right:20px;padding-left:20px}.auth-form-top{justify-content:space-between}.auth-form-side .auth-card{padding:27px 0}.auth-mobile-brand{margin-bottom:28px}.auth-form-side .auth-card h1{font-size:29px}.auth-preview-items{grid-template-columns:1fr}.auth-story-content h2{font-size:36px}}
 @media(prefers-reduced-motion:reduce){.auth-spinner{animation:none}.auth-input-wrap,.auth-submit{transition:none}}
+
+
+/* Improve readability: larger typography across login and registration */
+.auth-form-top{font-size:13px;gap:10px}
+.auth-form-top button,.auth-form-switch button{font-size:13px}
+.auth-form-side .auth-back-button{font-size:13px;line-height:1.5}
+.auth-form-eyebrow{font-size:10.5px;letter-spacing:1.5px}
+.auth-form-side .muted-copy{font-size:14px;line-height:1.75}
+.auth-form{gap:20px}
+.auth-form label{font-size:13px;gap:9px}
+.auth-input-wrap{min-height:54px;gap:12px}
+.auth-input-wrap>i{font-size:16px}
+.auth-input-wrap input{height:52px;font-size:14px}
+.auth-input-wrap input::placeholder{font-size:13.5px}
+.auth-password-hint{font-size:12px;line-height:1.5}
+.auth-form .alert{font-size:13px}
+.auth-submit{min-height:54px;font-size:14px}
+.auth-submit span:last-child{font-size:17px}
+.auth-form-switch{font-size:13px;line-height:1.65}
+.auth-security-note{font-size:12px;line-height:1.6}
+.auth-security-note i{font-size:15px}
+.auth-form-bottom{font-size:10.5px}
+@media(max-width:760px){
+  .auth-form-top{font-size:12px}
+  .auth-form-top button{font-size:13px}
+  .auth-form-side .auth-back-button{font-size:13px}
+  .auth-form-eyebrow{font-size:10px}
+  .auth-form-side .muted-copy{font-size:14px}
+  .auth-form label{font-size:13px}
+  .auth-input-wrap input{font-size:14px}
+  .auth-password-hint{font-size:11.5px}
+  .auth-form-switch{font-size:12.5px}
+  .auth-form-switch button{font-size:13px}
+  .auth-security-note{font-size:11.5px}
+  .auth-form-bottom{font-size:10px}
+}
