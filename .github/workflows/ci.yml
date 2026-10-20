@@ -18,6 +18,8 @@ jobs:
           node-version: "22"
       - name: Install dependencies from lockfile
         run: npm ci
+      - name: Validate Vercel SPA configuration
+        run: node -e 'const c = require("./vercel.json"); if (c.framework !== "vite" || c.buildCommand !== "npm run build" || c.outputDirectory !== "dist" || !c.rewrites?.some(r => r.source === "/(.*)" && r.destination === "/index.html")) process.exit(1)'
       - run: npm run build
       - name: Validate production Compose overlay
         env:

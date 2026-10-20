@@ -84,6 +84,18 @@ Because Vite embeds this variable into the generated assets, rebuild the image w
 
 For cookie-based login to work, configure the backend's `FRONTEND_ORIGIN` to the exact HTTPS frontend origin and use `COOKIE_SECURE=true`, `COOKIE_NAME=__Host-campaign_session`, and a unique random `JWT_SECRET_KEY` in production. The backend's session cookie defaults to `SameSite=Strict`, so deploy the frontend and API on custom HTTPS domains under the same registrable domain (for example, `app.example.com` and `api.example.com`). Unrelated default provider domains may cause browsers to block the session cookie. See the backend repository README for the corresponding database, migration, and SMTP settings.
 
+### Deploy the frontend with your existing Vercel project
+
+The repository contains a `vercel.json` for the Vite build and SPA fallback. You do not need to install the Vercel CLI for the Git-connected dashboard workflow.
+
+1. In your existing Vercel dashboard, import or select this frontend repository, keep the project root at the repository root, and set the production branch to `main`. The checked-in configuration sets the Vite framework preset, `npm run build`, and `dist` output.
+2. In Project Settings → Environment Variables, add `VITE_API_URL=https://api.your-real-domain.example` for Production. This value is public, embedded into the frontend during build, and changing it requires a new deployment.
+3. Assign a custom HTTPS domain such as `app.your-real-domain.example` to the frontend project. Configure the backend API on a sibling subdomain such as `api.your-real-domain.example`; this keeps the backend's `SameSite=Strict` session cookie same-site.
+4. Deploy the backend using its API-only overlay and `Caddyfile.api-only`; the backend README contains the required DNS, TLS, database, Redis, secure cookie, CSRF-origin, and SMTP setup. Set the backend's `FRONTEND_ORIGIN` to the exact frontend custom-domain origin.
+5. Test the production Vercel domain through registration/login/logout, then send a controlled-inbox test campaign. Production API CORS/CSRF rules deliberately do not allow arbitrary Vercel preview origins to use the production session.
+
+Never put database passwords, JWT secrets, SMTP credentials, or other backend secrets into any `VITE_*` variable.
+
 ### Single-host HTTPS deployment with Caddy
 
 The optional `docker-compose.production.yml` overlay connects this frontend to the backend repository's Caddy reverse proxy through a shared Docker network. It leaves the normal local command above available without requiring this network.
