@@ -227,7 +227,7 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
 });
 
 
-test("report exposes skipped deliveries when a contact unsubscribes before sending", async ({ page }) => {
+test("campaign report displays skipped deliveries distinctly from sent and failed", async ({ page }) => {
   const email = uniqueEmail("skipped-delivery");
   await page.goto("/");
   await page.getByRole("button", { name: "New here? Create an account" }).click();
@@ -250,12 +250,34 @@ test("report exposes skipped deliveries when a contact unsubscribes before sendi
   await nav.getByRole("button", { name: "Campaigns", exact: true }).click();
   await page.getByRole("button", { name: "New campaign" }).click();
   await page.getByLabel("Campaign name").fill("Skip Unsubscribed Recipient");
-  await page.getByLabel("Subject").fill("Transactional test");
+  await page.getByLabel("Subject").fill("Subscription check");
   await page.getByLabel("Message HTML").fill("<p>Hello</p>");
   await page.getByRole("button", { name: "Save campaign" }).click();
   const row = page.locator(".campaign-row").filter({ hasText: "Skip Unsubscribed Recipient" });
+  await expect(row).toBeVisible();
+
+  // The real backend integration service has no external SMTP account. Simulate
+  // the later report returned after a worker skips a just-unsubscribed contact.
+  await page.route("**/api/v1/campaigns/*/report", async route => {
+    const response = await route.fetch();
+    const report = await response.json();
+    report.latest_run_status = "completed";
+    report.campaign.status = "completed";
+    report.summary.queued = 0;
+    report.summary.sent = 0;
+    report.summary.failed = 0;
+    report.summary.skipped = 1;
+    report.summary.total = 1;
+    await route.fulfill({ response, json: report });
+  });
+
   await row.getByRole("button", { name: "Execute" }).click();
   await expect(page.locator(".report-card")).toContainText("Latest run: queued");
+  await expect(page.locator(".report-card")).toContainText("Latest run: completed", { timeout: 10000 });
+  await expect(page.locator(".report-card")).toContainText("Skipped");
+  await expect(page.locator(".report-card")).toContainText("1");
+  await expect(page.locator(".report-card")).toContainText("Sent");
+  await expect(page.locator(".report-card")).toContainText("Failed");
 });
 test("campaign delivery report refreshes when background processing completes", async ({ page }) => {
   const email = uniqueEmail("worker-report");
