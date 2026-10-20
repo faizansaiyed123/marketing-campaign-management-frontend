@@ -69,6 +69,45 @@ test("user can complete the audience-to-campaign frontend workflow against the A
   await expect(page.locator(".analytics-grid .stat").nth(1).locator("strong")).toHaveText("0");
 });
 
+test("saved templates are private and populate a new campaign", async ({ page }) => {
+  const email = uniqueEmail("templates");
+  await page.goto("/");
+  await page.getByRole("button", { name: "New here? Create an account" }).click();
+  await page.getByLabel("Name").fill("Template User");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("strong-password-123");
+  await page.getByRole("button", { name: "Create workspace" }).click();
+  await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
+
+  const nav = page.locator(".sidebar nav").first();
+  await nav.getByRole("button", { name: "Audience", exact: true }).click();
+  const audienceName = "Template Audience " + Date.now();
+  await page.getByPlaceholder("New audience name").fill(audienceName);
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(page.getByRole("button", { name: new RegExp(audienceName) })).toBeVisible();
+
+  await nav.getByRole("button", { name: "Templates", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Templates", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "New template" }).click();
+  await page.getByLabel("Template name").fill("Welcome Template");
+  await page.getByLabel("Template subject").fill("Welcome {{first_name}}");
+  await page.getByLabel("Template HTML").fill("<p>Hello {{first_name}}, welcome aboard.</p>");
+  await page.getByRole("button", { name: "Save template" }).click();
+  await expect(page.getByText("Welcome Template", { exact: true })).toBeVisible();
+
+  await nav.getByRole("button", { name: "Campaigns", exact: true }).click();
+  await page.getByRole("button", { name: "New campaign" }).click();
+  await page.getByLabel("Start from template").selectOption({ label: "Welcome Template" });
+  await expect(page.getByLabel("Subject")).toHaveValue("Welcome {{first_name}}");
+  await expect(page.getByLabel("Message HTML")).toHaveValue("<p>Hello {{first_name}}, welcome aboard.</p>");
+  await page.getByLabel("Campaign name").fill("Template-based campaign");
+  await page.getByLabel("Audience").selectOption({ label: new RegExp(audienceName).source });
+  await page.getByRole("button", { name: "Save campaign" }).click();
+  await expect(page.getByText("Template-based campaign", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Logout" }).click().catch(() => {});
+});
+
 test("mobile workspace navigation remains visible and accessible", async ({ page }) => {
   const email = uniqueEmail("mobile-nav");
 

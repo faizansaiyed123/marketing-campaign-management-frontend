@@ -89,7 +89,7 @@ For cookie-based login to work, configure the backend's `FRONTEND_ORIGIN` to the
 - Registration and login states backed by the real API.
 - Workspace dashboard populated from persisted counts.
 - Audience and contact management, including subscribe/unsubscribe state.
-- Campaign create, edit, schedule, execute and report workflows.
+- Campaign create, edit, schedule, execute and report workflows, with reusable saved templates.
 - Delivery and engagement analytics from backend data.
 - Loading, empty and error states.
 - Responsive workspace layout for desktop and mobile.
