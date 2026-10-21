@@ -102,7 +102,6 @@ jobs:
       COOKIE_SECURE: "false"
       FRONTEND_ORIGIN: http://127.0.0.1:5173
       PUBLIC_BASE_URL: http://127.0.0.1:8000
-      # Trailing slash intentionally exercises API base URL normalization in browser tests.
       VITE_API_URL: http://127.0.0.1:8000/
       BACKEND_DIR: ./backend
     steps:
