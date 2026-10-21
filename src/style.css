@@ -4,7 +4,6 @@
 
 .campaign-retry-note{border:1px solid #f2d8aa;background:#fffaf0;color:#7b5a26;border-radius:7px;padding:10px 12px;font-size:10px;line-height:1.55;margin:0 0 14px}
 
-/* Refined campaign dashboard */
 .preview-app{background:#f7f8fc;color:#20213a;min-height:100vh}
 .preview-sidebar{width:252px;padding:25px 16px 18px;background:#fff;border-right:1px solid #e9eaf2}
 .preview-brand{font-size:18px;margin:0 9px 38px;white-space:nowrap}
@@ -127,7 +126,6 @@
 .preview-feature-strip small{display:block;margin-top:5px;color:#9a9cac;font-size:9px;line-height:1.5}
 .preview-app button:focus-visible{outline:3px solid #b9aefa;outline-offset:2px}
 
-/* Keep the authenticated dashboard visually consistent with the new overview. */
 .main:not(.preview-main) .welcome{position:relative;align-items:center;min-height:150px;padding:25px 27px;border-radius:16px;margin-bottom:18px;background:radial-gradient(circle at 83% 8%,#6553c9 0,transparent 34%),linear-gradient(115deg,#252044,#44338f);overflow:hidden}
 .main:not(.preview-main) .welcome .eyebrow{color:#d6d0ff}
 .main:not(.preview-main) .welcome h1{color:#fff;font-size:28px}
@@ -197,7 +195,6 @@
 }
 
 
-/* Public marketing homepage */
 .public-home{--purple:#6954d7;--ink:#292440;--muted:#807c92;min-height:100vh;overflow:hidden;background:#fff;color:var(--ink);font-family:"DM Sans",sans-serif}
 .public-home *{box-sizing:border-box}
 .home-nav{width:calc(100% - 72px);max-width:1240px;height:82px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:28px;border-bottom:1px solid #efedf7;position:relative;z-index:20}
@@ -313,7 +310,6 @@
 }
 
 
-/* Authentication experience — refined, responsive split-screen design */
 .auth-experience{min-height:100vh;display:grid;grid-template-columns:minmax(420px,0.92fr) minmax(480px,1.08fr);background:#fff;color:#27253a;font-family:"DM Sans",sans-serif}
 .auth-story{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;min-height:100vh;padding:34px clamp(28px,5vw,76px) 25px;background:radial-gradient(ellipse at 15% 10%,#3e3975 0%,transparent 38%),linear-gradient(145deg,#24233f 0%,#302b54 52%,#3b315f 100%);color:#fff}
 .auth-story:before,.auth-story:after{content:"";position:absolute;z-index:-1;border:1px solid #ffffff12;border-radius:50%;pointer-events:none}
@@ -393,7 +389,6 @@
 @media(prefers-reduced-motion:reduce){.auth-spinner{animation:none}.auth-input-wrap,.auth-submit{transition:none}}
 
 
-/* Improve readability: larger typography across login and registration */
 .auth-form-top{font-size:13px;gap:10px}
 .auth-form-top button,.auth-form-switch button{font-size:13px}
 .auth-form-side .auth-back-button{font-size:13px;line-height:1.5}

@@ -260,8 +260,6 @@ test("campaign report displays skipped deliveries distinctly from sent and faile
   const row = page.locator(".campaign-row").filter({ hasText: "Skip Unsubscribed Recipient" });
   await expect(row).toBeVisible();
 
-  // The real backend integration service has no external SMTP account. Simulate
-  // the later report returned after a worker skips a just-unsubscribed contact.
   await page.route("**/api/v1/campaigns/*/report", async route => {
     const response = await route.fetch();
     const report = await response.json();
@@ -311,9 +309,6 @@ test("campaign delivery report refreshes when background processing completes", 
   const campaignRow = page.locator(".campaign-row").filter({ hasText: "Worker Report Campaign" });
   await expect(campaignRow).toBeVisible();
 
-  // Mimic a worker completing the durable queue between the initial 202 response
-  // and a subsequent GET report request. The integration backend intentionally
-  // runs without an external SMTP account.
   await page.route("**/api/v1/campaigns/*/report", async route => {
     const response = await route.fetch();
     const report = await response.json();
@@ -375,8 +370,6 @@ test("an empty completed campaign can be reused after contacts are added", async
   await expect(reusableRow).toContainText("completed");
   await expect(reusableRow.getByRole("button", { name: "Edit" })).toBeVisible();
   await expect(reusableRow.getByRole("button", { name: "Execute" })).toBeVisible();
-  // The integration backend has no live SMTP account. Simulate the worker
-  // finishing only after the user manually refreshes this still-queued report.
   let manualRefreshRequested = false;
   await page.route("**/api/v1/campaigns/*/report", async route => {
     const response = await route.fetch();
