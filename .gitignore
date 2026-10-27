@@ -1,3 +1,14 @@
 node_modules/
 dist/
+build/
+coverage/
+playwright-report/
+test-results/
+__pycache__/
+.pytest_cache/
 .env
+*.log
+logs/
+storage/
+uploads/
+.DS_Store
