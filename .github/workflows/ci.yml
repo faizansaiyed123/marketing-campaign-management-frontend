@@ -2,6 +2,8 @@ name: Frontend CI
 on:
   push:
     branches: [development, main]
+    paths-ignore:
+      - "docs/testing/visuals/**"
   pull_request:
     branches: [main]
 
@@ -79,6 +81,8 @@ jobs:
           grep -qi '^x-content-type-options: nosniff' /tmp/frontend-headers.txt
 
   integration:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -133,5 +137,20 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            docs/testing/visuals/
           retention-days: 14
+
+      - name: Commit verified visual walkthrough screenshots
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/testing/visuals/
+          if git diff --cached --quiet; then
+            echo "Visual walkthrough screenshots are unchanged."
+            exit 0
+          fi
+          git commit -m "docs: add marketing campaign visual screenshots"
+          git push origin HEAD:main

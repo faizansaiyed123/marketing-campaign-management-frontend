@@ -126,6 +126,10 @@ The frontend container is published on loopback only; public HTTPS traffic shoul
 
 Frontend dependencies are installed from the committed npm lockfile using `npm ci`. The pinned toolchain includes Vite 6.4.4 and source-map-js 1.2.2; Vite 6.4.4 addresses the published Vite 6.4.3-and-earlier issues [GHSA-rq7h-c2jc-7f22](https://github.com/vitejs/vite/security/advisories/GHSA-rq7h-c2jc-7f22) and [GHSA-9jrq-w75r-8gcw](https://github.com/vitejs/vite/security/advisories/GHSA-9jrq-w75r-8gcw). CI now runs `npm audit --audit-level=high` on every main/development push and pull request, in addition to the build and browser integration tests.
 
+## Visual walkthrough
+
+See [`docs/testing/VISUAL-TEST-WALKTHROUGH.md`](docs/testing/VISUAL-TEST-WALKTHROUGH.md) for browser screenshots of the landing page, account flow, workspace overview, audience/contact management, reusable templates, campaign builder, saved campaigns, and analytics.
+
 ## Implemented
 
 - Registration and login states backed by the real API.
