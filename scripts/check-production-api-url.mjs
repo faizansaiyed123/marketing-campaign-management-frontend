@@ -30,7 +30,13 @@ if (
 
 const hostname = apiUrl.hostname.toLowerCase().replace(/\.$/, "");
 const reservedHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
-const exampleDomains = ["example.com", "example.org", "example.net", "yourdomain.com", "your-domain.com"];
+const exampleDomains = [
+  "example.com",
+  "example.org",
+  "example.net",
+  "yourdomain.com",
+  "your-domain.com"
+];
 const usesReservedExampleDomain = exampleDomains.some(
   domain => hostname === domain || hostname.endsWith("." + domain)
 );
@@ -40,7 +46,9 @@ if (
   usesReservedExampleDomain ||
   [".example", ".invalid", ".test", ".localhost"].some(suffix => hostname.endsWith(suffix))
 ) {
-  fail("VITE_API_URL must use a real public API hostname, not localhost or an example placeholder.");
+  fail(
+    "VITE_API_URL must use a real public API hostname, not localhost or an example placeholder."
+  );
 }
 
 console.log(`Validated public API origin: ${apiUrl.origin}`);
