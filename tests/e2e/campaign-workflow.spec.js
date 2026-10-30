@@ -4,11 +4,16 @@ function uniqueEmail(prefix) {
   return prefix + "-" + Date.now() + "-" + Math.floor(Math.random() * 100000) + "@example.com";
 }
 
-test("user can complete the audience-to-campaign frontend workflow against the API", async ({ page }) => {
+test("user can complete the audience-to-campaign frontend workflow against the API", async ({
+  page
+}) => {
   const email = uniqueEmail("workflow");
 
   await page.goto("/");
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await page.getByLabel("Name").fill("E2E User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -16,7 +21,11 @@ test("user can complete the audience-to-campaign frontend workflow against the A
 
   await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
 
-  await page.locator(".sidebar nav").first().getByRole("button", { name: /Audience/ }).click();
+  await page
+    .locator(".sidebar nav")
+    .first()
+    .getByRole("button", { name: /Audience/ })
+    .click();
   await expect(page.getByRole("heading", { name: "Audience", exact: true })).toBeVisible();
 
   const audienceName = "E2E Audience " + Date.now();
@@ -36,13 +45,18 @@ test("user can complete the audience-to-campaign frontend workflow against the A
   await expect(page.getByRole("button", { name: "Unsubscribe" })).toBeVisible();
 
   const audienceState = await page.evaluate(async () => {
-    const response = await fetch("http://127.0.0.1:8000/api/v1/audiences", { credentials: "include" });
+    const response = await fetch("http://127.0.0.1:8000/api/v1/audiences", {
+      credentials: "include"
+    });
     return response.json();
   });
   expect(audienceState).toHaveLength(1);
   expect(audienceState[0].contact_count).toBe(1);
-  const contactState = await page.evaluate(async (audienceId) => {
-    const response = await fetch("http://127.0.0.1:8000/api/v1/audiences/" + audienceId + "/contacts", { credentials: "include" });
+  const contactState = await page.evaluate(async audienceId => {
+    const response = await fetch(
+      "http://127.0.0.1:8000/api/v1/audiences/" + audienceId + "/contacts",
+      { credentials: "include" }
+    );
     return response.json();
   }, audienceState[0].id);
   expect(contactState).toHaveLength(1);
@@ -74,7 +88,10 @@ test("user can complete the audience-to-campaign frontend workflow against the A
 test("saved templates are private and populate a new campaign", async ({ page }) => {
   const email = uniqueEmail("templates");
   await page.goto("/");
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await page.getByLabel("Name").fill("Template User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -101,14 +118,15 @@ test("saved templates are private and populate a new campaign", async ({ page })
   await page.getByRole("button", { name: "New campaign" }).click();
   await page.getByLabel("Start from template").selectOption({ label: "Welcome Template" });
   await expect(page.getByLabel("Subject")).toHaveValue("Welcome {{first_name}}");
-  await expect(page.getByLabel("Message HTML")).toHaveValue("<p>Hello {{first_name}}, welcome aboard.</p>");
+  await expect(page.getByLabel("Message HTML")).toHaveValue(
+    "<p>Hello {{first_name}}, welcome aboard.</p>"
+  );
   await page.getByLabel("Campaign name").fill("Template-based campaign");
   const audienceSelect = page.locator("form.editor").getByLabel("Audience");
   const audienceOption = audienceSelect.locator("option").filter({ hasText: audienceName });
   await audienceSelect.selectOption(await audienceOption.getAttribute("value"));
   await page.getByRole("button", { name: "Save campaign" }).click();
   await expect(page.getByText("Template-based campaign", { exact: true })).toBeVisible();
-
 });
 
 test("mobile workspace navigation remains visible and accessible", async ({ page }) => {
@@ -116,7 +134,10 @@ test("mobile workspace navigation remains visible and accessible", async ({ page
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await page.getByLabel("Name").fill("Mobile Navigation User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -145,12 +166,16 @@ test("authentication errors are surfaced in the browser", async ({ page }) => {
   await expect(page.locator(".alert")).toContainText("Invalid email or password");
 });
 
-
-test("session survives reload, duplicate-contact errors are surfaced, and logout clears the session", async ({ page }) => {
+test("session survives reload, duplicate-contact errors are surfaced, and logout clears the session", async ({
+  page
+}) => {
   const email = uniqueEmail("session");
 
   await page.goto("/");
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await page.getByLabel("Name").fill("Session User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -160,7 +185,11 @@ test("session survives reload, duplicate-contact errors are surfaced, and logout
   await page.reload();
   await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
 
-  await page.locator(".sidebar nav").first().getByRole("button", { name: /Audience/ }).click();
+  await page
+    .locator(".sidebar nav")
+    .first()
+    .getByRole("button", { name: /Audience/ })
+    .click();
   const audienceName = "Duplicate Test " + Date.now();
   await page.getByPlaceholder("New audience name").fill(audienceName);
   await page.getByRole("button", { name: "Add", exact: true }).click();
@@ -184,13 +213,20 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
   const email = uniqueEmail("schedule");
 
   await page.goto("/");
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await page.getByLabel("Name").fill("Schedule User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
   await page.getByRole("button", { name: "Create workspace" }).click();
 
-  await page.locator(".sidebar nav").first().getByRole("button", { name: /Audience/ }).click();
+  await page
+    .locator(".sidebar nav")
+    .first()
+    .getByRole("button", { name: /Audience/ })
+    .click();
   const audienceName = "Schedule Audience " + Date.now();
   await page.getByPlaceholder("New audience name").fill(audienceName);
   await page.getByRole("button", { name: "Add", exact: true }).click();
@@ -207,11 +243,21 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
   await page.getByLabel("Message HTML").fill("<p>Scheduled message</p>");
 
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  const p = (value) => String(value).padStart(2, "0");
-  await page.locator('input[type="datetime-local"]:visible').last().fill(
-    tomorrow.getFullYear() + "-" + p(tomorrow.getMonth() + 1) + "-" +
-    p(tomorrow.getDate()) + "T" + p(tomorrow.getHours()) + ":" + p(tomorrow.getMinutes())
-  );
+  const p = value => String(value).padStart(2, "0");
+  await page
+    .locator('input[type="datetime-local"]:visible')
+    .last()
+    .fill(
+      tomorrow.getFullYear() +
+        "-" +
+        p(tomorrow.getMonth() + 1) +
+        "-" +
+        p(tomorrow.getDate()) +
+        "T" +
+        p(tomorrow.getHours()) +
+        ":" +
+        p(tomorrow.getMinutes())
+    );
   await page.getByRole("button", { name: "Save campaign" }).click();
 
   const row = page.locator(".campaign-row").filter({ hasText: "Scheduled Campaign" });
@@ -220,21 +266,30 @@ test("scheduled campaigns can be created, edited back to draft, and executed", a
   await expect(page.getByRole("heading", { name: "Edit campaign" })).toBeVisible();
 
   await page.getByLabel("Subject").fill("Updated scheduled subject");
-  await page.locator("form.editor:visible input[type=\"datetime-local\"]").fill("");
+  await page.locator('form.editor:visible input[type="datetime-local"]').fill("");
   await page.getByRole("button", { name: "Save campaign" }).click();
-  await expect(page.locator(".campaign-row").filter({ hasText: "Scheduled Campaign" })).toContainText("draft");
+  await expect(
+    page.locator(".campaign-row").filter({ hasText: "Scheduled Campaign" })
+  ).toContainText("draft");
 
-  await page.locator(".campaign-row").filter({ hasText: "Scheduled Campaign" })
-    .getByRole("button", { name: "Execute" }).click();
+  await page
+    .locator(".campaign-row")
+    .filter({ hasText: "Scheduled Campaign" })
+    .getByRole("button", { name: "Execute" })
+    .click();
   await expect(page.locator(".report-card")).toContainText("Latest run: queued");
   await expect(page.locator(".report-card")).toContainText("Attempts");
 });
 
-
-test("campaign report displays skipped deliveries distinctly from sent and failed", async ({ page }) => {
+test("campaign report displays skipped deliveries distinctly from sent and failed", async ({
+  page
+}) => {
   const email = uniqueEmail("skipped-delivery");
   await page.goto("/");
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await page.getByLabel("Name").fill("Skipped Delivery User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -275,23 +330,34 @@ test("campaign report displays skipped deliveries distinctly from sent and faile
 
   await row.getByRole("button", { name: "Execute" }).click();
   await expect(page.locator(".report-card")).toContainText("Latest run: queued");
-  await expect(page.locator(".report-card")).toContainText("Latest run: completed", { timeout: 10000 });
+  await expect(page.locator(".report-card")).toContainText("Latest run: completed", {
+    timeout: 10000
+  });
   await expect(page.locator(".report-card")).toContainText("Skipped");
   await expect(page.locator(".report-card")).toContainText("1");
   await expect(page.locator(".report-card")).toContainText("Sent");
   await expect(page.locator(".report-card")).toContainText("Failed");
 });
-test("campaign delivery report refreshes when background processing completes", async ({ page }) => {
+test("campaign delivery report refreshes when background processing completes", async ({
+  page
+}) => {
   const email = uniqueEmail("worker-report");
   await page.goto("/");
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await page.getByLabel("Name").fill("Worker Report User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
   await page.getByRole("button", { name: "Create workspace" }).click();
   await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
 
-  await page.locator(".sidebar nav").first().getByRole("button", { name: "Audience", exact: true }).click();
+  await page
+    .locator(".sidebar nav")
+    .first()
+    .getByRole("button", { name: "Audience", exact: true })
+    .click();
   const audienceName = "Worker Report Audience " + Date.now();
   await page.getByPlaceholder("New audience name").fill(audienceName);
   await page.getByRole("button", { name: "Add", exact: true }).click();
@@ -325,11 +391,13 @@ test("campaign delivery report refreshes when background processing completes", 
   await expect(page.locator(".report-card")).toContainText("Sent");
 });
 
-
 test("an empty completed campaign can be reused after contacts are added", async ({ page }) => {
   const email = uniqueEmail("empty-campaign");
   await page.goto("/");
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await page.getByLabel("Name").fill("Empty Campaign User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -389,18 +457,22 @@ test("an empty completed campaign can be reused after contacts are added", async
   await reusableRow.getByRole("button", { name: "Execute" }).click();
   await expect(page.locator(".report-card")).toContainText("Latest run: queued");
   await expect(page.locator(".report-card")).toContainText("Queued");
-  await expect(page.locator(".report-card")).toContainText("Totals include delivery attempts across runs, including retries");
+  await expect(page.locator(".report-card")).toContainText(
+    "Totals include delivery attempts across runs, including retries"
+  );
   manualRefreshRequested = true;
   await page.locator(".report-card").getByRole("button", { name: "Refresh report" }).click();
   await expect(page.locator(".report-card")).toContainText("Latest run: sent");
   await expect(page.locator(".report-card")).toContainText("Sent");
 });
 
-
 test("editing a partial campaign explains retry recipient behavior", async ({ page }) => {
   const email = uniqueEmail("partial-retry");
   await page.goto("/");
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await page.getByLabel("Name").fill("Partial Retry User");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("strong-password-123");
@@ -443,6 +515,10 @@ test("editing a partial campaign explains retry recipient behavior", async ({ pa
   const row = page.locator(".campaign-row").filter({ hasText: "Partial Retry Campaign" });
   await expect(row).toContainText("partial");
   await row.getByRole("button", { name: "Edit" }).click();
-  await expect(page.locator(".campaign-retry-note")).toContainText("Retry sends only failed recipients");
-  await expect(page.locator(".campaign-retry-note")).toContainText("Changes you save apply to the retry");
+  await expect(page.locator(".campaign-retry-note")).toContainText(
+    "Retry sends only failed recipients"
+  );
+  await expect(page.locator(".campaign-retry-note")).toContainText(
+    "Changes you save apply to the retry"
+  );
 });

@@ -26,7 +26,9 @@ function backendOrigin() {
     origin.search ||
     origin.hash
   ) {
-    throw new Error("BACKEND_API_URL must be an HTTPS origin without credentials, path, query, or fragment.");
+    throw new Error(
+      "BACKEND_API_URL must be an HTTPS origin without credentials, path, query, or fragment."
+    );
   }
 
   return origin;
@@ -72,13 +74,21 @@ export default async function handler(req, res) {
   }
   if (!origin) {
     return json(res, 503, {
-      detail: "Campaign API is not configured. Deploy the campaign-management backend and set BACKEND_API_URL in Vercel.",
+      detail:
+        "Campaign API is not configured. Deploy the campaign-management backend and set BACKEND_API_URL in Vercel."
     });
   }
 
   const target = new URL(`${incoming.pathname}${incoming.search}`, origin);
   const headers = new Headers();
-  for (const name of ["accept", "content-type", "cookie", "origin", "sec-fetch-site", "user-agent"]) {
+  for (const name of [
+    "accept",
+    "content-type",
+    "cookie",
+    "origin",
+    "sec-fetch-site",
+    "user-agent"
+  ]) {
     const value = req.headers[name];
     if (typeof value === "string" && value.length > 0) headers.set(name, value);
   }
@@ -92,23 +102,35 @@ export default async function handler(req, res) {
       ...(body === undefined || method === "GET" ? {} : { body }),
       cache: "no-store",
       redirect: "manual",
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(20000)
     });
   } catch {
     return json(res, 502, {
-      detail: "Could not reach the campaign backend. Check BACKEND_API_URL and the backend service health.",
+      detail:
+        "Could not reach the campaign backend. Check BACKEND_API_URL and the backend service health."
     });
   }
 
   res.statusCode = upstream.status;
-  for (const name of ["content-type", "cache-control", "pragma", "retry-after", "location", "www-authenticate", "clear-site-data"]) {
+  for (const name of [
+    "content-type",
+    "cache-control",
+    "pragma",
+    "retry-after",
+    "location",
+    "www-authenticate",
+    "clear-site-data"
+  ]) {
     const value = upstream.headers.get(name);
     if (value) res.setHeader(name, value);
   }
 
-  const setCookies = typeof upstream.headers.getSetCookie === "function"
-    ? upstream.headers.getSetCookie()
-    : (upstream.headers.get("set-cookie") ? [upstream.headers.get("set-cookie")] : []);
+  const setCookies =
+    typeof upstream.headers.getSetCookie === "function"
+      ? upstream.headers.getSetCookie()
+      : upstream.headers.get("set-cookie")
+        ? [upstream.headers.get("set-cookie")]
+        : [];
   if (setCookies.length) res.setHeader("Set-Cookie", setCookies);
 
   const responseBytes = Buffer.from(await upstream.arrayBuffer());

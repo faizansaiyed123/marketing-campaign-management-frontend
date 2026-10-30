@@ -11,7 +11,7 @@ async function capture(page, filename) {
     type: "jpeg",
     quality: 86,
     fullPage: true,
-    animations: "disabled",
+    animations: "disabled"
   });
 }
 
@@ -28,7 +28,10 @@ test("capture the visual walkthrough using the real frontend and backend", async
   await expect(page.getByRole("heading", { name: /Make room for/ })).toBeVisible();
   await capture(page, "00-homepage.jpg");
 
-  await page.getByRole("button", { name: /Get started/ }).first().click();
+  await page
+    .getByRole("button", { name: /Get started/ })
+    .first()
+    .click();
   await expect(page).toHaveURL(/\/register$/);
   await expect(page.getByRole("heading", { name: "Create your workspace" })).toBeVisible();
   await capture(page, "01-registration.jpg");
@@ -64,11 +67,15 @@ test("capture the visual walkthrough using the real frontend and backend", async
 
   // Read the new records back through the actual backend, not a stubbed response.
   const audienceReadback = await page.evaluate(async () => {
-    const response = await fetch("http://127.0.0.1:8000/api/v1/audiences", { credentials: "include" });
+    const response = await fetch("http://127.0.0.1:8000/api/v1/audiences", {
+      credentials: "include"
+    });
     return { ok: response.ok, items: await response.json() };
   });
   expect(audienceReadback.ok).toBeTruthy();
-  const storedAudience = audienceReadback.items.find(item => item.name === "Visual Walkthrough Audience");
+  const storedAudience = audienceReadback.items.find(
+    item => item.name === "Visual Walkthrough Audience"
+  );
   expect(storedAudience).toBeTruthy();
   expect(storedAudience.contact_count).toBe(1);
 
@@ -89,26 +96,36 @@ test("capture the visual walkthrough using the real frontend and backend", async
   await page.getByRole("button", { name: "New template" }).click();
   await page.getByLabel("Template name").fill("Visual Walkthrough Template");
   await page.getByLabel("Template subject").fill("A thoughtful update for {{first_name}}");
-  await page.getByLabel("Template HTML").fill("<p>Hello {{first_name}},</p><p>Here is the latest news from our team.</p>");
+  await page
+    .getByLabel("Template HTML")
+    .fill("<p>Hello {{first_name}},</p><p>Here is the latest news from our team.</p>");
   await page.getByRole("button", { name: "Save template" }).click();
   await expect(page.getByText("Visual Walkthrough Template", { exact: true })).toBeVisible();
 
   const templateReadback = await page.evaluate(async () => {
-    const response = await fetch("http://127.0.0.1:8000/api/v1/templates", { credentials: "include" });
+    const response = await fetch("http://127.0.0.1:8000/api/v1/templates", {
+      credentials: "include"
+    });
     return { ok: response.ok, items: await response.json() };
   });
   expect(templateReadback.ok).toBeTruthy();
-  expect(templateReadback.items.some(item => item.name === "Visual Walkthrough Template")).toBeTruthy();
+  expect(
+    templateReadback.items.some(item => item.name === "Visual Walkthrough Template")
+  ).toBeTruthy();
   await capture(page, "05-reusable-templates.jpg");
 
   await nav.getByRole("button", { name: "Campaigns", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Campaigns", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "New campaign" }).click();
   await expect(page.locator("form.editor")).toBeVisible();
-  await page.getByLabel("Start from template").selectOption({ label: "Visual Walkthrough Template" });
+  await page
+    .getByLabel("Start from template")
+    .selectOption({ label: "Visual Walkthrough Template" });
   await page.getByLabel("Campaign name").fill("Visual Walkthrough Campaign");
   const audienceSelect = page.locator("form.editor").getByLabel("Audience");
-  const audienceOption = audienceSelect.locator("option").filter({ hasText: "Visual Walkthrough Audience" });
+  const audienceOption = audienceSelect
+    .locator("option")
+    .filter({ hasText: "Visual Walkthrough Audience" });
   const audienceId = await audienceOption.getAttribute("value");
   expect(audienceId).toBeTruthy();
   await audienceSelect.selectOption(audienceId);
@@ -116,16 +133,22 @@ test("capture the visual walkthrough using the real frontend and backend", async
   await capture(page, "06-campaign-builder.jpg");
 
   await page.getByRole("button", { name: "Save campaign" }).click();
-  const campaignRow = page.locator(".campaign-row").filter({ hasText: "Visual Walkthrough Campaign" });
+  const campaignRow = page
+    .locator(".campaign-row")
+    .filter({ hasText: "Visual Walkthrough Campaign" });
   await expect(campaignRow).toBeVisible();
   await expect(campaignRow).toContainText("draft");
 
   const campaignReadback = await page.evaluate(async () => {
-    const response = await fetch("http://127.0.0.1:8000/api/v1/campaigns", { credentials: "include" });
+    const response = await fetch("http://127.0.0.1:8000/api/v1/campaigns", {
+      credentials: "include"
+    });
     return { ok: response.ok, items: await response.json() };
   });
   expect(campaignReadback.ok).toBeTruthy();
-  const storedCampaign = campaignReadback.items.find(item => item.name === "Visual Walkthrough Campaign");
+  const storedCampaign = campaignReadback.items.find(
+    item => item.name === "Visual Walkthrough Campaign"
+  );
   expect(storedCampaign).toBeTruthy();
   expect(storedCampaign.status).toBe("draft");
   await capture(page, "07-saved-campaign.jpg");
